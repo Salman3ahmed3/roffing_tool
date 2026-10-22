@@ -1,0 +1,82 @@
+---
+/** FAQ accordion. Answers are always in the HTML (FAQPage schema must match visible text). */
+import type { Faq } from '../lib/seo';
+interface Props {
+  items: Faq[];
+  title?: string;
+  id?: string;
+}
+const { items, title = 'Frequently asked questions', id = 'faq' } = Astro.props;
+---
+
+<section class="section" aria-labelledby={`${id}-h`}>
+  <h2 id={`${id}-h`}>{title}</h2>
+  <div class="faq">
+    {
+      items.map((f, i) => (
+        <details name={id} open={i === 0}>
+          <summary>
+            <span>{f.q}</span>
+            <span class="icon" aria-hidden="true" />
+          </summary>
+          <p>{f.a}</p>
+        </details>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .faq {
+    border-top: var(--line);
+  }
+  details {
+    border-bottom: var(--line);
+  }
+  summary {
+    list-style: none;
+    min-height: 56px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-2) 0;
+    font-size: 16px;
+    font-weight: var(--fw-semibold);
+    cursor: pointer;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  .icon {
+    flex: none;
+    width: 24px;
+    text-align: center;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--color-accent);
+  }
+  .icon::before {
+    content: '+';
+  }
+  details[open] .icon::before {
+    content: '−';
+  }
+  p {
+    font-size: 16px;
+    line-height: 1.65;
+    margin: 0 0 20px;
+    max-width: 720px;
+    color: var(--color-neutral-800);
+  }
+  @media (min-width: 768px) {
+    summary {
+      font-size: 17px;
+    }
+  }
+  @media print {
+    .faq details:not([open]) p {
+      display: block;
+    }
+  }
+</style>

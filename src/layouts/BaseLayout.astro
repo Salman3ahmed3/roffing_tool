@@ -1,0 +1,90 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../config/site';
+import { adsEnabled, ADSENSE_CLIENT } from '../config/ads';
+import { absUrl, breadcrumbLd, ldJson, type Crumb } from '../lib/seo';
+
+interface Props {
+  /** Page title without the brand suffix. */
+  title: string;
+  description: string;
+  breadcrumbs: Crumb[];
+  jsonLd?: unknown[];
+  ogType?: 'website' | 'article';
+  /** Set true on the homepage so the title is not suffixed twice. */
+  rawTitle?: boolean;
+  noindex?: boolean;
+}
+
+const { title, description, breadcrumbs, jsonLd = [], ogType = 'website', rawTitle = false, noindex = false } =
+  Astro.props;
+const site = Astro.site ?? new URL('https://www.example.com');
+const path = Astro.url.pathname;
+const canonical = absUrl(site, path);
+const fullTitle = rawTitle ? title : `${title} | ${SITE.brand}`;
+const ogImage = absUrl(site, SITE.ogImage);
+const structured = [breadcrumbLd(site, breadcrumbs, path), ...jsonLd];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#1b1f24" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE.brand} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={SITE.locale} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {structured.map((d) => <script type="application/ld+json" set:html={ldJson(d)} />)}
+
+    {
+      adsEnabled && (
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+          crossorigin="anonymous"
+        />
+      )
+    }
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header currentPath={path} />
+    <main id="main" class="page-main">
+      <slot />
+    </main>
+    <Footer />
+    {
+      adsEnabled && (
+        <script is:inline>
+          // Fill only the slots that are visible at this breakpoint (the sidebar slot is hidden on mobile).
+          document.querySelectorAll('ins.adsbygoogle').forEach(function (el) {
+            if (el.offsetParent !== null) (window.adsbygoogle = window.adsbygoogle || []).push({});
+          });
+        </script>
+      )
+    }
+  </body>
+</html>

@@ -1,0 +1,106 @@
+---
+import { SITE, TOOLS, COMPANY_LINKS, GUIDE_LINKS } from '../config/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="cols">
+      <div class="about">
+        <b class="name">{SITE.brand}</b>
+        <p>{SITE.tagline}</p>
+      </div>
+      <nav aria-label="Tools">
+        <h2>Tools</h2>
+        <ul>{TOOLS.map((t) => <li><a href={t.href}>{t.name}</a></li>)}</ul>
+      </nav>
+      <nav aria-label="Guides">
+        <h2>Guides</h2>
+        <ul>{GUIDE_LINKS.map((g) => <li><a href={g.href}>{g.name}</a></li>)}</ul>
+      </nav>
+      <nav aria-label="Company">
+        <h2>Company</h2>
+        <ul>{COMPANY_LINKS.map((l) => <li><a href={l.href}>{l.name}</a></li>)}</ul>
+      </nav>
+    </div>
+    <p class="legal">
+      © {year} {SITE.brand}. Estimates for planning only. Confirm quantities with your supplier and local building code.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-text);
+    color: var(--color-neutral-300);
+    padding: var(--space-12) 0 var(--space-8);
+    font-size: 14px;
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-8) var(--space-6);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--color-neutral-700);
+  }
+  .about {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .name {
+    font-size: 20px;
+    color: #fff;
+  }
+  .about p {
+    line-height: 1.55;
+    max-width: 320px;
+  }
+  h2 {
+    font-size: 12px;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fff;
+    margin-bottom: var(--space-2);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    color: var(--color-neutral-300);
+    text-decoration: none;
+  }
+  a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+  .legal {
+    margin-top: var(--space-6);
+    font-size: 12px;
+    color: var(--color-neutral-400);
+  }
+  @media (min-width: 768px) {
+    .site-footer {
+      padding-top: 56px;
+    }
+    .cols {
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: var(--gutter);
+    }
+    .about {
+      grid-column: auto;
+    }
+  }
+  @media print {
+    .site-footer {
+      display: none;
+    }
+  }
+</style>

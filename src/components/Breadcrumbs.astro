@@ -1,0 +1,59 @@
+---
+import type { Crumb } from '../lib/seo';
+interface Props {
+  items: Crumb[];
+}
+const { items } = Astro.props;
+---
+
+<nav class="crumbs" aria-label="Breadcrumb">
+  <ol>
+    {
+      items.map((c, i) => {
+        const last = i === items.length - 1;
+        return (
+          <li>
+            {last ? (
+              <span aria-current="page">{c.name}</span>
+            ) : c.href ? (
+              <a href={c.href}>{c.name}</a>
+            ) : (
+              <span>{c.name}</span>
+            )}
+          </li>
+        );
+      })
+    }
+  </ol>
+</nav>
+
+<style>
+  ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--color-neutral-700);
+  }
+  li + li::before {
+    content: '/';
+    margin-right: 6px;
+  }
+  a {
+    color: var(--color-text);
+    display: inline-block;
+    padding-block: 4px;
+  }
+  span {
+    display: inline-block;
+    padding-block: 4px;
+  }
+  @media print {
+    .crumbs {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,72 @@
+/**
+ * Site-wide settings. Bracketed values are placeholders to replace before launch.
+ */
+export const SITE = {
+  brand: '[BRAND]',
+  tagline: 'Free roofing, fence and deck calculators. Calculations run in your browser; nothing you enter is stored.',
+  author: '[Author name]',
+  reviewer: '[Reviewer name]',
+  reviewerCredential: 'licensed roofing contractor',
+  /** Shown in the "Formula verified" badge. ISO date; set when a real review happens. */
+  lastReviewed: '[Review date]',
+  contactEmail: '[contact@brand.com]',
+  locale: 'en_US',
+  ogImage: '/og-default.png',
+} as const;
+
+/** Feature flags. Keep these off until real data / partners exist. */
+export const FLAGS = {
+  /** Cost-range card on the materials tool. Off until real regional pricing is supplied. */
+  showCostCard: false,
+  /** "Get 3 quotes" CTA. Off (rendered disabled/hidden) until a lead partner exists. */
+  showQuotesCta: false,
+} as const;
+
+export interface NavTool {
+  name: string;
+  href: string;
+  desc: string;
+  icon: string;
+  trade: 'Roofing' | 'Outdoor';
+}
+
+export const TOOLS: NavTool[] = [
+  {
+    name: 'Roof Pitch',
+    href: '/roof-pitch-calculator/',
+    desc: 'Pitch, angle, slope % and rafter multiplier from rise and run.',
+    icon: 'M3 19h18V6L3 19z M8 19a5 5 0 0 0-1-3',
+    trade: 'Roofing',
+  },
+  {
+    name: 'Roofing Materials',
+    href: '/roofing-calculator/',
+    desc: 'Squares, bundles, underlayment and drip edge.',
+    icon: 'M2 10L12 4l10 6 M4 9v10h16V9 M4 14h16 M9 9v5 M15 9v5 M12 14v5',
+    trade: 'Roofing',
+  },
+  {
+    name: 'Fence',
+    href: '/fence-calculator/',
+    desc: 'Posts, rails, pickets and concrete for any run length.',
+    icon: 'M5 21V6l2-2 2 2v15 M15 21V6l2-2 2 2v15 M2 10h20 M2 16h20',
+    trade: 'Outdoor',
+  },
+  {
+    name: 'Deck',
+    href: '/deck-calculator/',
+    desc: 'Boards, joists and screws for a rectangular deck.',
+    icon: 'M2 8h20v4H2z M4 12v8 M20 12v8 M12 12v8 M2 16h20',
+    trade: 'Outdoor',
+  },
+];
+
+export const COMPANY_LINKS = [
+  { name: 'About', href: '/about/' },
+  { name: 'Contact', href: '/contact/' },
+  { name: 'Privacy', href: '/privacy/' },
+  { name: 'Terms', href: '/terms/' },
+  { name: 'Methodology', href: '/methodology/' },
+];
+
+export const GUIDE_LINKS = [{ name: 'Measuring roof pitch', href: '/guides/how-to-measure-roof-pitch/' }];

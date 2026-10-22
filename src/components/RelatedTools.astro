@@ -1,0 +1,38 @@
+---
+import { TOOLS } from '../config/site';
+interface Props {
+  exclude: string;
+}
+const { exclude } = Astro.props;
+const items = TOOLS.filter((t) => t.href !== exclude);
+---
+
+<section class="section related" aria-labelledby="related-h">
+  <h2 id="related-h" class="h-sm">Related tools</h2>
+  <div class="card-grid three">
+    {
+      items.map((t) => (
+        <a class="tool-card" href={t.href}>
+          <b>{t.name}</b>
+          <span>{t.desc}</span>
+        </a>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .h-sm {
+    font-size: 22px;
+  }
+  @media (min-width: 768px) {
+    .h-sm {
+      font-size: 24px;
+    }
+  }
+  @media print {
+    .related {
+      display: none;
+    }
+  }
+</style>

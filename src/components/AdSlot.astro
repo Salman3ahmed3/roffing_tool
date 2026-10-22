@@ -1,0 +1,109 @@
+---
+/**
+ * Fixed-size ad slot. Each placement has a reserved box whose size never changes after load (no CLS).
+ * Renders nothing unless PUBLIC_ADSENSE_CLIENT and the placement's slot ID are set
+ * (or PUBLIC_AD_PLACEHOLDERS=true for layout review).
+ *
+ * Placement rule: only use where the slot sits ≥ 32px from any input, tab or button.
+ */
+import { ADSENSE_CLIENT, AD_LABELS, AD_SLOT_IDS, adPlaceholders, adsEnabled, type AdPlacement } from '../config/ads';
+
+interface Props {
+  placement: AdPlacement;
+  class?: string;
+}
+const { placement, class: cls = '' } = Astro.props;
+const slotId = AD_SLOT_IDS[placement];
+const live = adsEnabled && slotId.length > 0;
+const show = live || adPlaceholders;
+---
+
+{
+  show && (
+    <div class:list={['ad', `ad-${placement}`, cls]} data-ad={placement}>
+      <span class="ad-label">Advertisement</span>
+      <div class="ad-box">
+        {live ? (
+          <ins
+            class="adsbygoogle"
+            data-ad-client={ADSENSE_CLIENT}
+            data-ad-slot={slotId}
+            {...(placement === 'inContent' ? { 'data-ad-format': 'auto', 'data-full-width-responsive': 'false' } : {})}
+          />
+        ) : (
+          <b class="ad-ph">{AD_LABELS[placement]}</b>
+        )}
+      </div>
+    </div>
+  )
+}
+
+<style>
+  .ad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    contain: layout;
+  }
+  .ad-label {
+    align-self: stretch;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-neutral-700);
+  }
+  .ad-box {
+    overflow: hidden;
+    background: var(--color-neutral-200);
+  }
+  .ad-ph {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--color-neutral-800);
+    border: 1px dashed var(--color-neutral-500);
+  }
+  .ad-box :global(ins) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Reserved sizes — identical for live ads and placeholders. */
+  .ad-sidebar .ad-box {
+    width: 300px;
+    height: 600px;
+  }
+  .ad-belowTool .ad-box {
+    width: 320px;
+    height: 100px;
+  }
+  @media (min-width: 768px) {
+    .ad-belowTool {
+      align-items: flex-start;
+    }
+    .ad-belowTool .ad-label {
+      text-align: left;
+    }
+    .ad-belowTool .ad-box {
+      width: 336px;
+      height: 280px;
+    }
+  }
+  .ad-inContent .ad-box {
+    width: 100%;
+    height: 280px;
+  }
+
+  @media print {
+    .ad {
+      display: none !important;
+    }
+  }
+</style>

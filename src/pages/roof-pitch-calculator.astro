@@ -1,0 +1,380 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageIntro from '../components/PageIntro.astro';
+import RoofPitchTool from '../components/tools/RoofPitchTool.astro';
+import AdSlot from '../components/AdSlot.astro';
+import Faq from '../components/Faq.astro';
+import RelatedTools from '../components/RelatedTools.astro';
+import { SITE } from '../config/site';
+import { pitchChartRows } from '../lib/calc/pitch';
+import { faqLd, webAppLd, type Crumb, type Faq as FaqItem } from '../lib/seo';
+
+const path = '/roof-pitch-calculator/';
+const title = 'Roof Pitch Calculator';
+const description =
+  'Free roof pitch calculator. Convert rise and run, an angle or an x/12 pitch into pitch, angle, slope % and rafter multiplier. Feet/inches or metric.';
+const breadcrumbs: Crumb[] = [{ name: 'Home', href: '/' }, { name: 'Roofing' }, { name: title, href: path }];
+
+const faqs: FaqItem[] = [
+  {
+    q: 'What is the most common roof pitch?',
+    a: 'Most pitched roofs on US homes fall between 4/12 and 9/12, and 6/12 is one of the most frequently used. Pitches in this range suit standard asphalt shingle installation and can be walked on with care.',
+  },
+  {
+    q: 'What is the minimum pitch for asphalt shingles?',
+    a: 'The International Residential Code (Section R905.2.2) allows asphalt shingles on slopes of 2/12 or steeper. Between 2/12 and 4/12, double underlayment is required.',
+  },
+  {
+    q: 'How do I convert roof pitch to degrees?',
+    a: 'Divide rise by run and take the arctangent: atan(6 ÷ 12) = 26.57°. The calculator does this for you and shows the result under Angle.',
+  },
+  {
+    q: 'What is a rafter multiplier used for?',
+    a: 'Multiply a horizontal run by it to get the sloped length, or multiply a roof’s flat footprint area by it to get the true roof surface area. For a 6/12 pitch the multiplier is 1.118.',
+  },
+  {
+    q: 'Can I measure pitch from inside the attic?',
+    a: 'Yes. Hold a level horizontally against the underside of a rafter, mark 12 inches along the level, and measure straight up from that mark to the rafter. The reading is the same as on the roof surface.',
+  },
+];
+
+const chart = pitchChartRows();
+const highlighted = new Set([4, 6, 8, 12]);
+
+const common = [
+  { p: '4/12', ratio: 4 / 12, text: '18.43°. Ranch homes and porches. The lowest slope for standard single-layer underlayment under shingles.' },
+  { p: '6/12', ratio: 6 / 12, text: '26.57°. A very common US residential pitch. Walkable with care.' },
+  { p: '8/12', ratio: 8 / 12, text: '33.69°. Common on colonial and two-story homes. Roof jacks recommended for work.' },
+  { p: '12/12', ratio: 1, text: '45°. Tudor and A-frame styles. Not walkable without fall protection.' },
+];
+const mini = (r: number) => {
+  // 160×48 thumbnail, 44px tall triangle, width from slope.
+  const h = 44;
+  const w = Math.min(152, h / r);
+  return `4,46 ${4 + w},46 ${4 + w},${46 - h}`;
+};
+
+const jsonLd = [
+  webAppLd({ site: Astro.site!, path, name: title, description, brand: SITE.brand }),
+  faqLd(faqs),
+];
+---
+
+<BaseLayout title={title} description={description} breadcrumbs={breadcrumbs} jsonLd={jsonLd}>
+  <PageIntro
+    title={title}
+    lede="Convert rise and run, an angle, or a pitch into all four roof slope measurements instantly."
+    breadcrumbs={breadcrumbs}
+  />
+
+  <div class="container with-sidebar">
+    <div class="main-col">
+      <RoofPitchTool />
+
+      <a class="next-step" href="/roofing-calculator/?pitch=6" data-pitch-next>
+        <span class="ns-text">
+          <span class="kicker">Next step · pitch carries over</span>
+          <span class="title">Now calculate how many shingles you need</span>
+        </span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+
+      <AdSlot placement="belowTool" class="ad-gap" />
+
+      <section class="section" id="how-to-measure" aria-labelledby="measure-h">
+        <h2 id="measure-h">How to measure roof pitch</h2>
+        <p class="prose">
+          You need a 24″ level and a tape measure. Work from a ladder at the eave or inside the attic, never on a wet or steep
+          roof.
+        </p>
+        <ol class="steps">
+          <li>
+            <div class="step-art blueprint">
+              <svg width="220" height="130" viewBox="0 0 200 120" aria-hidden="true">
+                <line x1="20" y1="110" x2="180" y2="30" stroke="#1b1f24" stroke-width="3"></line>
+                <rect x="60" y="44" width="80" height="6" fill="#fff" stroke="#1f4bc0" stroke-width="2"></rect>
+                <text x="100" y="36" text-anchor="middle" font-size="13" font-weight="600" fill="#1f4bc0">12″</text>
+              </svg>
+            </div>
+            <div class="step-text">
+              <b>Step 1</b>
+              <span>Hold the level flat with one end touching the roof. Mark 12″ from that end.</span>
+            </div>
+          </li>
+          <li>
+            <div class="step-art blueprint">
+              <svg width="220" height="130" viewBox="0 0 200 120" aria-hidden="true">
+                <line x1="20" y1="110" x2="180" y2="30" stroke="#1b1f24" stroke-width="3"></line>
+                <rect x="60" y="44" width="80" height="6" fill="#fff" stroke="#8f98a4" stroke-width="2"></rect>
+                <line x1="60" y1="50" x2="60" y2="90" stroke="#1f4bc0" stroke-width="2.5"></line>
+                <line x1="54" y1="90" x2="66" y2="90" stroke="#1f4bc0" stroke-width="2"></line>
+                <text x="44" y="76" text-anchor="end" font-size="13" font-weight="600" fill="#1f4bc0">6″</text>
+              </svg>
+            </div>
+            <div class="step-text">
+              <b>Step 2</b>
+              <span>Measure straight down from the 12″ mark to the roof surface. That is the rise.</span>
+            </div>
+          </li>
+          <li>
+            <div class="step-art blueprint">
+              <svg width="220" height="130" viewBox="0 0 200 120" aria-hidden="true">
+                <polygon points="40,90 120,50 40,50" fill="rgba(31,75,192,.08)" stroke="#1f4bc0" stroke-width="2.5"></polygon>
+                <text x="128" y="98" font-size="26" font-weight="800" fill="#1b1f24">6/12</text>
+              </svg>
+            </div>
+            <div class="step-text">
+              <b>Step 3</b>
+              <span>Read it as rise over 12. Enter both numbers above for the angle and multiplier.</span>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section" aria-labelledby="chart-h">
+        <div class="section-head">
+          <h2 id="chart-h">Roof pitch chart</h2>
+          <span class="muted small">Highlighted: common residential pitches</span>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="sr-only">Roof pitch to angle, slope and rafter multiplier, 1/12 to 12/12</caption>
+            <thead>
+              <tr><th scope="col">Pitch</th><th scope="col">Angle</th><th scope="col">Slope</th><th scope="col">Rafter multiplier</th></tr>
+            </thead>
+            <tbody>
+              {
+                chart.map((r) => (
+                  <tr class:list={{ hl: highlighted.has(r.rise) }}>
+                    <th scope="row">{r.pitch}</th>
+                    <td>{r.angle}</td>
+                    <td>{r.slope}</td>
+                    <td>{r.multiplier}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <AdSlot placement="inContent" class="ad-gap" />
+
+      <section class="section" aria-labelledby="common-h">
+        <h2 id="common-h">Common roof pitches</h2>
+        <ul class="common">
+          {
+            common.map((c) => (
+              <li>
+                <svg width="160" height="48" viewBox="0 0 160 48" aria-hidden="true">
+                  <polygon points={mini(c.ratio)} fill="none" stroke="#1f4bc0" stroke-width="2" />
+                </svg>
+                <b class="tnum">{c.p}</b>
+                <span>{c.text}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="section two-col" aria-labelledby="example-h">
+        <div class="col">
+          <h2 id="example-h">Worked example</h2>
+          <p class="prose">A garage roof rises 4′ 6″ over a 9′ run. Convert both to inches: 54″ rise, 108″ run.</p>
+        </div>
+        <div class="code-block" role="group" aria-label="Worked example calculation">
+          pitch = 54 ÷ 108 × 12 = <b class="accent">6/12</b><br />
+          angle = atan(54 ÷ 108) = <b>26.57°</b><br />
+          slope = 54 ÷ 108 = <b>50.0%</b><br />
+          multiplier = √(54² + 108²) ÷ 108 = <b>1.118</b><br />
+          rafter = 108″ × 1.118 = <b>120.7″ (10′ 0.7″)</b>
+        </div>
+      </section>
+
+      <Faq items={faqs} />
+
+      <section class="section two-col" aria-labelledby="formula-h">
+        <div class="col">
+          <h2 id="formula-h" class="h-sm">Formula</h2>
+          <div class="code-block">
+            pitch = (rise ÷ run) × 12<br />
+            angle° = atan(rise ÷ run) × 180 ÷ π<br />
+            slope % = (rise ÷ run) × 100<br />
+            multiplier = √(1 + (rise ÷ run)²)
+          </div>
+        </div>
+        <div class="col">
+          <h2 class="h-sm" id="sources-h">Sources</h2>
+          <ol class="sources">
+            <li>International Code Council, International Residential Code, Section R905.2.2 (asphalt shingle slope).</li>
+            <li>National Roofing Contractors Association, The NRCA Roofing Manual: Steep-slope Roof Systems.</li>
+            <li>U.S. Occupational Safety and Health Administration, Fall Protection in Residential Construction.</li>
+          </ol>
+          <p class="muted small">
+            <b class="ink">Last reviewed: {SITE.lastReviewed}</b> by {SITE.reviewer}, {SITE.reviewerCredential}.{' '}
+            <a href="/methodology/">Methodology</a>
+          </p>
+        </div>
+      </section>
+
+      <RelatedTools exclude={path} />
+    </div>
+
+    <aside>
+      <AdSlot placement="sidebar" />
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .main-col {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .next-step {
+    margin-top: var(--space-4);
+  }
+  .main-col > :global(.tool) {
+    margin-inline: calc(-1 * var(--page-margin));
+  }
+  @media (min-width: 768px) {
+    .main-col > :global(.tool) {
+      margin-inline: 0;
+    }
+  }
+  /* Ads keep ≥ 40px clear of the next-step card and any control. */
+  .main-col :global(.ad-gap) {
+    margin-top: 40px;
+  }
+  .small {
+    font-size: 13px;
+  }
+  .ink {
+    color: var(--color-text);
+  }
+  .h-sm {
+    font-size: 22px;
+  }
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    border: var(--line);
+    background: var(--color-surface);
+  }
+  .steps li + li {
+    border-top: var(--line);
+  }
+  .step-art {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-art text {
+    font-family: var(--font-sans);
+  }
+  .step-text {
+    padding: var(--space-4) 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .step-text b {
+    font-size: 13px;
+    color: var(--color-accent);
+    text-transform: uppercase;
+  }
+  .common {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: var(--line);
+    background: var(--color-surface);
+  }
+  .common li {
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    border-bottom: var(--line);
+  }
+  .common li:nth-child(odd) {
+    border-right: var(--line);
+  }
+  .common li:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+  .common svg {
+    width: 100%;
+    height: 48px;
+  }
+  .common b {
+    font-size: 24px;
+  }
+  .common span {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-neutral-700);
+  }
+  .two-col .col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .sources {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  @media (min-width: 768px) {
+    .next-step {
+      margin-top: var(--space-6);
+    }
+    .h-sm {
+      font-size: 24px;
+    }
+    .steps {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .steps li + li {
+      border-top: 0;
+      border-left: var(--line);
+    }
+    .common {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .common li {
+      padding: 20px;
+      border-bottom: 0;
+      border-right: var(--line);
+    }
+    .common li:last-child {
+      border-right: 0;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--gutter);
+    }
+  }
+
+  @media print {
+    .next-step,
+    .main-col > :global(.section:not(:has(#chart-h))) {
+      display: none !important;
+    }
+    .main-col {
+      gap: 16px;
+    }
+  }
+</style>

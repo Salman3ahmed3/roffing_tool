@@ -1,0 +1,289 @@
+---
+import { SITE, TOOLS, GUIDE_LINKS } from '../config/site';
+
+interface Props {
+  currentPath: string;
+}
+const { currentPath } = Astro.props;
+const trades = ['Roofing', 'Outdoor'] as const;
+const links = [
+  { name: 'Guides', href: GUIDE_LINKS[0].href, match: '/guides/' },
+  { name: 'Methodology', href: '/methodology/', match: '/methodology/' },
+  { name: 'About', href: '/about/', match: '/about/' },
+];
+const toolActive = TOOLS.some((t) => t.href === currentPath);
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="/" aria-label={`${SITE.brand} home`}>
+      <span class="logo" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path d="M2 15h14V5z" fill="#fff"></path></svg>
+      </span>
+      <b>{SITE.brand}</b>
+    </a>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-toggle>
+      <span class="sr-only">Menu</span>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M3 6h18M3 12h18M3 18h18"></path>
+      </svg>
+    </button>
+
+    <nav id="site-nav" class="nav" aria-label="Main">
+      <ul class="nav-list">
+        <li class="has-menu">
+          <button
+            class:list={['nav-link', 'tools-btn', { active: toolActive }]}
+            type="button"
+            aria-expanded="false"
+            aria-controls="tools-menu"
+            data-tools-toggle
+          >
+            Tools
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </button>
+          <div id="tools-menu" class="tools-menu" hidden>
+            {
+              trades.map((trade) => (
+                <div class="group">
+                  <span class="group-label">{trade}</span>
+                  <ul>
+                    {TOOLS.filter((t) => t.trade === trade).map((t) => (
+                      <li>
+                        <a href={t.href} aria-current={t.href === currentPath ? 'page' : undefined}>
+                          {t.name} Calculator
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            }
+          </div>
+        </li>
+        {
+          links.map((l) => (
+            <li>
+              <a class="nav-link" href={l.href} aria-current={currentPath.startsWith(l.match) ? 'page' : undefined}>
+                {l.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const menuBtn = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const nav = document.getElementById('site-nav');
+  const toolsBtn = document.querySelector<HTMLButtonElement>('[data-tools-toggle]');
+  const toolsMenu = document.getElementById('tools-menu');
+
+  const setTools = (open: boolean) => {
+    if (!toolsBtn || !toolsMenu) return;
+    toolsBtn.setAttribute('aria-expanded', String(open));
+    toolsMenu.hidden = !open;
+  };
+  const setMenu = (open: boolean) => {
+    if (!menuBtn || !nav) return;
+    menuBtn.setAttribute('aria-expanded', String(open));
+    nav.classList.toggle('open', open);
+    // On mobile the Tools list is shown expanded inside the menu.
+    if (open) setTools(true);
+  };
+
+  menuBtn?.addEventListener('click', () => setMenu(menuBtn.getAttribute('aria-expanded') !== 'true'));
+  toolsBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setTools(toolsBtn.getAttribute('aria-expanded') !== 'true');
+  });
+  document.addEventListener('click', (e) => {
+    if (!(e.target instanceof Node)) return;
+    if (toolsMenu && !toolsMenu.hidden && !toolsMenu.contains(e.target) && window.matchMedia('(min-width: 768px)').matches)
+      setTools(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (toolsBtn?.getAttribute('aria-expanded') === 'true') {
+      setTools(false);
+      toolsBtn.focus();
+    } else if (menuBtn?.getAttribute('aria-expanded') === 'true') {
+      setMenu(false);
+      menuBtn.focus();
+    }
+  });
+</script>
+
+<style>
+  .site-header {
+    background: var(--color-surface);
+    border-bottom: var(--rule);
+    position: relative;
+    z-index: 20;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    height: var(--header-h);
+    gap: 36px;
+    padding-right: 8px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: auto;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: var(--fw-heavy);
+  }
+  .logo {
+    width: 24px;
+    height: 24px;
+    background: var(--color-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo svg {
+    width: 15px;
+    height: 15px;
+  }
+  .menu-toggle {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-surface);
+    border-bottom: var(--rule);
+    padding: var(--space-2) var(--page-margin) var(--space-4);
+  }
+  .nav.open {
+    display: block;
+  }
+  .nav-list,
+  .nav-list ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 48px;
+    font-size: 15px;
+    color: var(--color-text);
+    text-decoration: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .nav-link:hover,
+  .nav-link[aria-current='page'],
+  .nav-link.active,
+  .tools-btn[aria-expanded='true'] {
+    color: var(--color-accent);
+  }
+  .tools-btn {
+    font-weight: var(--fw-semibold);
+  }
+  .tools-btn[aria-expanded='true'] svg {
+    transform: rotate(180deg);
+  }
+  .tools-menu {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0 0 var(--space-3);
+  }
+  .tools-menu[hidden] {
+    display: none;
+  }
+  .group-label {
+    display: block;
+    font-size: 11px;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-neutral-700);
+    margin-bottom: 2px;
+  }
+  .tools-menu a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 15px;
+  }
+  .tools-menu a:hover,
+  .tools-menu a[aria-current='page'] {
+    color: var(--color-accent);
+  }
+
+  @media (min-width: 768px) {
+    .bar {
+      padding-right: var(--page-margin);
+    }
+    .brand {
+      font-size: 18px;
+      gap: 10px;
+    }
+    .logo {
+      width: 28px;
+      height: 28px;
+    }
+    .logo svg {
+      width: 18px;
+      height: 18px;
+    }
+    .menu-toggle {
+      display: none;
+    }
+    .nav {
+      display: block;
+      position: static;
+      border: 0;
+      padding: 0;
+      background: none;
+    }
+    .nav-list {
+      display: flex;
+      gap: 36px;
+      align-items: center;
+    }
+    .has-menu {
+      position: relative;
+    }
+    .tools-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: -16px;
+      grid-template-columns: repeat(2, minmax(190px, 1fr));
+      gap: var(--space-6);
+      padding: var(--space-4);
+      background: var(--color-surface);
+      border: var(--line);
+      border-top: var(--rule);
+      box-shadow: var(--shadow-md);
+    }
+  }
+</style>

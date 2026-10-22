@@ -1,0 +1,387 @@
+---
+/**
+ * Roof pitch calculator block: tabs, inputs, results, live SVG diagram, Copy / Share / Print.
+ * Server-renders the default (6/12) state so results are visible before JS runs;
+ * /src/scripts/roof-pitch.ts takes over and restores state from the URL.
+ */
+import {
+  DEFAULT_PITCH_INPUTS as D,
+  classifyPitch,
+  evaluatePitch,
+  formatPitchResults,
+  pitchResults,
+} from '../../lib/calc/pitch';
+import { DIAGRAM_VIEWBOX, triangleGeometry } from '../../lib/pitch-diagram';
+import { buildPitchQuery } from '../../lib/url-state/pitch';
+
+const ev = evaluatePitch(D);
+const res = pitchResults(ev.ratio ?? 0.5);
+const f = formatPitchResults(res);
+const g = triangleGeometry(ev.ratio);
+const shareText = `${Astro.url.pathname}?${buildPitchQuery(D)}`;
+
+const tabs = [
+  { id: 'rr', label: 'Rise & Run', extra: '' },
+  { id: 'angle', label: 'Angle', extra: '' },
+  { id: 'pitch', label: 'Pitch', extra: ' (x/12)' },
+] as const;
+---
+
+<section class="tool" data-pitch-tool aria-label="Roof pitch calculator">
+  <div class="tabs" role="tablist" aria-label="Input method">
+    {
+      tabs.map((t) => (
+        <button
+          type="button"
+          role="tab"
+          id={`pt-tab-${t.id}`}
+          aria-controls={`pt-panel-${t.id}`}
+          aria-selected={t.id === D.mode ? 'true' : 'false'}
+          tabindex={t.id === D.mode ? 0 : -1}
+          data-mode={t.id}
+        >
+          {t.label}
+          {t.extra && <span class="hide-sm">{t.extra}</span>}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="tool-grid">
+    <div class="inputs">
+      <!-- Rise & run -->
+      <div role="tabpanel" id="pt-panel-rr" aria-labelledby="pt-tab-rr" class="panel">
+        <div class="units-row">
+          <span class="units-label" id="pt-units-l">Units</span>
+          <div class="seg" role="group" aria-labelledby="pt-units-l">
+            <button type="button" data-unit="imp" aria-pressed="true">ft / in</button>
+            <button type="button" data-unit="met" aria-pressed="false">Metric</button>
+          </div>
+        </div>
+
+        <div class="unit-imp">
+          <fieldset class="field" data-field="rise">
+            <legend class="field-label">Rise <span class="hint">· vertical height</span></legend>
+            <div class="field-row">
+              <div class="input-group">
+                <input id="pt-rise-ft" name="riseFt" type="number" inputmode="decimal" min="0" step="any" placeholder="0"
+                  value={D.riseFt} aria-label="Rise, feet" aria-describedby="pt-err-rise" />
+                <span class="suffix" aria-hidden="true">ft</span>
+              </div>
+              <div class="input-group">
+                <input id="pt-rise-in" name="riseIn" type="number" inputmode="decimal" min="0" step="any" placeholder="0"
+                  value={D.riseIn} aria-label="Rise, inches" aria-describedby="pt-err-rise" />
+                <span class="suffix" aria-hidden="true">in</span>
+              </div>
+            </div>
+            <span class="field-error" id="pt-err-rise" data-error="rise"></span>
+          </fieldset>
+
+          <fieldset class="field" data-field="run">
+            <legend class="field-label">Run <span class="hint">· horizontal distance (12″ standard)</span></legend>
+            <div class="field-row">
+              <div class="input-group">
+                <input id="pt-run-ft" name="runFt" type="number" inputmode="decimal" min="0" step="any" placeholder="1"
+                  value={D.runFt} aria-label="Run, feet" aria-describedby="pt-err-run" />
+                <span class="suffix" aria-hidden="true">ft</span>
+              </div>
+              <div class="input-group">
+                <input id="pt-run-in" name="runIn" type="number" inputmode="decimal" min="0" step="any" placeholder="0"
+                  value={D.runIn} aria-label="Run, inches" aria-describedby="pt-err-run" />
+                <span class="suffix" aria-hidden="true">in</span>
+              </div>
+            </div>
+            <span class="field-error" id="pt-err-run" data-error="run"></span>
+          </fieldset>
+        </div>
+
+        <div class="unit-met" hidden>
+          <div class="field" data-field="rise">
+            <label class="field-label" for="pt-rise-cm">Rise</label>
+            <div class="input-group">
+              <input id="pt-rise-cm" name="riseCm" type="number" inputmode="decimal" min="0" step="any"
+                value={D.riseCm} aria-describedby="pt-err-rise-m" />
+              <span class="suffix" aria-hidden="true">cm</span>
+            </div>
+            <span class="field-error" id="pt-err-rise-m" data-error="rise"></span>
+          </div>
+          <div class="field" data-field="run">
+            <label class="field-label" for="pt-run-cm">Run</label>
+            <div class="input-group">
+              <input id="pt-run-cm" name="runCm" type="number" inputmode="decimal" min="0" step="any"
+                value={D.runCm} aria-describedby="pt-err-run-m" />
+              <span class="suffix" aria-hidden="true">cm</span>
+            </div>
+            <span class="field-error" id="pt-err-run-m" data-error="run"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Angle -->
+      <div role="tabpanel" id="pt-panel-angle" aria-labelledby="pt-tab-angle" class="panel" hidden>
+        <div class="field" data-field="angle">
+          <label class="field-label" for="pt-angle">Roof angle</label>
+          <div class="input-group">
+            <input id="pt-angle" name="angle" type="number" inputmode="decimal" min="0" max="75" step="any"
+              value={D.angle} aria-describedby="pt-err-angle" />
+            <span class="suffix" aria-hidden="true">degrees</span>
+          </div>
+          <span class="field-error" id="pt-err-angle" data-error="angle"></span>
+        </div>
+      </div>
+
+      <!-- Pitch -->
+      <div role="tabpanel" id="pt-panel-pitch" aria-labelledby="pt-tab-pitch" class="panel" hidden>
+        <div class="field" data-field="pitch">
+          <label class="field-label" for="pt-pitch">Pitch <span class="hint">· inches of rise per 12″ run</span></label>
+          <div class="input-group">
+            <input id="pt-pitch" name="pitch" type="number" inputmode="decimal" min="0" max="48" step="any"
+              value={D.pitch} aria-describedby="pt-err-pitch" />
+            <span class="suffix" aria-hidden="true">/ 12</span>
+          </div>
+          <span class="field-error" id="pt-err-pitch" data-error="pitch"></span>
+        </div>
+      </div>
+
+      <p class="note" data-status>{classifyPitch(res.pitch)}</p>
+    </div>
+
+    <dl class="results four" data-results>
+      <div class="result primary"><dt>Pitch</dt><dd data-out="pitch">{f.pitch}</dd></div>
+      <div class="result"><dt>Angle</dt><dd data-out="angle">{f.angle}</dd></div>
+      <div class="result"><dt>Slope</dt><dd data-out="slope">{f.slope}</dd></div>
+      <div class="result">
+        <dt><span class="long">Rafter multiplier</span><span class="short" aria-hidden="true">Rafter ×</span></dt>
+        <dd data-out="multiplier">{f.multiplier}</dd>
+      </div>
+    </dl>
+
+    <div class="diagram blueprint">
+      <svg viewBox={DIAGRAM_VIEWBOX} width="420" height="230" role="img" aria-labelledby="pt-dg-title" data-diagram>
+        <title id="pt-dg-title">Roof slope diagram: rise {ev.riseLabel} over run {ev.runLabel}, {f.angle}</title>
+        <polygon data-dg="tri" points={g.points} class="dg-tri" />
+        <path data-dg="arc" d={g.arc} class="dg-arc" />
+        <text data-dg="run" x={g.runX} y={g.runY} text-anchor="middle" class="dg-label">Run {ev.runLabel}</text>
+        <text data-dg="rise" x={g.riseX} y={g.riseY} text-anchor={g.riseAnchor} class="dg-label">Rise {ev.riseLabel}</text>
+        <text data-dg="ang" x={g.angX} y={g.angY} class="dg-ang">{f.angle}</text>
+      </svg>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-primary" data-act="copy">Copy results</button>
+      <button type="button" class="btn btn-secondary" data-act="share">Share link</button>
+      <button type="button" class="btn btn-secondary" data-act="print">Print</button>
+      <span class="share-url mono" data-share-url>{shareText}</span>
+    </div>
+  </div>
+
+  <p class="print-only print-url">Results link: <span data-print-url>{shareText}</span></p>
+  <div class="sr-only" aria-live="polite" aria-atomic="true" data-live></div>
+</section>
+
+<script>
+  import { initRoofPitchTool } from '../../scripts/roof-pitch';
+  document.querySelectorAll<HTMLElement>('[data-pitch-tool]').forEach((el) => initRoofPitchTool(el));
+</script>
+
+<style>
+  .tool {
+    background: var(--color-surface);
+    border-top: var(--rule);
+    box-shadow: var(--shadow-md);
+  }
+  .tool-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'inputs' 'results' 'diagram' 'actions';
+  }
+  .inputs {
+    grid-area: inputs;
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .panel,
+  .unit-imp,
+  .unit-met {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .panel[hidden],
+  .unit-imp[hidden],
+  .unit-met[hidden] {
+    display: none;
+  }
+  .units-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .units-label {
+    font-size: 13px;
+    color: var(--color-neutral-700);
+  }
+  .results {
+    grid-area: results;
+  }
+  .diagram {
+    grid-area: diagram;
+    padding: var(--space-3) var(--space-4);
+    border-top: var(--line);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .diagram svg {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 420 / 230;
+  }
+  .dg-tri {
+    fill: rgba(31, 75, 192, 0.08);
+    stroke: var(--color-accent);
+    stroke-width: 3;
+  }
+  .dg-arc {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 2;
+  }
+  .dg-label {
+    font-family: var(--font-sans);
+    font-size: 19px;
+    font-weight: 600;
+    fill: var(--color-text);
+  }
+  .dg-ang {
+    font-family: var(--font-sans);
+    font-size: 17px;
+    font-weight: 600;
+    fill: var(--color-accent);
+  }
+  .diagram.is-empty .dg-tri {
+    fill: none;
+    stroke: var(--color-neutral-500);
+    stroke-dasharray: 8 6;
+  }
+  .diagram.is-empty .dg-arc,
+  .diagram.is-empty .dg-ang {
+    display: none;
+  }
+  .diagram.is-empty .dg-label {
+    fill: var(--color-neutral-600);
+  }
+  .actions {
+    grid-area: actions;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-top: var(--line);
+  }
+  .actions .btn {
+    padding: 0 var(--space-3);
+  }
+  .share-url {
+    display: none;
+  }
+  .hide-sm {
+    display: none;
+  }
+
+  @media (min-width: 900px) {
+    .tool-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+      grid-template-areas: 'inputs diagram' 'results results' 'actions actions';
+    }
+    .inputs {
+      padding: var(--space-6);
+      gap: 20px;
+      border-right: var(--line);
+    }
+    .panel,
+    .unit-imp,
+    .unit-met {
+      gap: 20px;
+    }
+    .diagram {
+      padding: 20px;
+      border-top: 0;
+    }
+    .dg-label {
+      font-size: 15px;
+    }
+    .dg-ang {
+      font-size: 14px;
+    }
+    .dg-tri {
+      stroke-width: 2.5;
+    }
+    .dg-arc {
+      stroke-width: 1.5;
+    }
+    .actions {
+      display: flex;
+      align-items: center;
+      padding: var(--space-4) var(--space-6);
+    }
+    .actions .btn {
+      padding: 0 var(--space-4);
+    }
+    .actions [data-act='copy'] {
+      min-width: 150px;
+    }
+    .actions [data-act='share'] {
+      min-width: 130px;
+    }
+    .share-url {
+      display: block;
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--color-neutral-700);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .hide-sm {
+      display: inline;
+    }
+  }
+
+  .print-only {
+    display: none;
+  }
+  @media print {
+    .tool {
+      box-shadow: none;
+      border: 1px solid #000;
+    }
+    .tabs,
+    .actions,
+    .units-row,
+    .note {
+      display: none !important;
+    }
+    .tool-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas: 'inputs diagram' 'results results';
+    }
+    .inputs {
+      border-right: 1px solid #000;
+    }
+    .print-only {
+      display: block;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+    .result.primary dd {
+      color: #000;
+    }
+    .blueprint {
+      background: #fff;
+    }
+  }
+</style>
