@@ -2,11 +2,9 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
-import { loadEnv } from 'vite';
 
-const env = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
-// Set PUBLIC_SITE_URL in .env to the production origin (used for canonicals, OG and the sitemap).
-const site = env.PUBLIC_SITE_URL || 'https://www.example.com';
+// Production origin: used for canonical URLs, Open Graph, JSON-LD, the sitemap and robots.txt.
+const site = 'https://exteriormath.com';
 
 export default defineConfig({
   site,

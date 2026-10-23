@@ -2,14 +2,14 @@
  * Site-wide settings. Bracketed values are placeholders to replace before launch.
  */
 export const SITE = {
-  brand: '[BRAND]',
+  brand: 'ExteriorMath',
   tagline: 'Free roofing, fence and deck calculators. Calculations run in your browser; nothing you enter is stored.',
   author: '[Author name]',
   reviewer: '[Reviewer name]',
   reviewerCredential: 'licensed roofing contractor',
   /** Shown in the "Formula verified" badge. ISO date; set when a real review happens. */
   lastReviewed: '[Review date]',
-  contactEmail: '[contact@brand.com]',
+  contactEmail: 'hello@exteriormath.com',
   locale: 'en_US',
   ogImage: '/og-default.png',
 } as const;

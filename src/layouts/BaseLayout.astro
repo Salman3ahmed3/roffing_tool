@@ -20,7 +20,7 @@ interface Props {
 
 const { title, description, breadcrumbs, jsonLd = [], ogType = 'website', rawTitle = false, noindex = false } =
   Astro.props;
-const site = Astro.site ?? new URL('https://www.example.com');
+const site = Astro.site ?? new URL('https://exteriormath.com');
 const path = Astro.url.pathname;
 const canonical = absUrl(site, path);
 const fullTitle = rawTitle ? title : `${title} | ${SITE.brand}`;

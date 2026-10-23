@@ -1,4 +1,4 @@
-# [BRAND] calculators
+# ExteriorMath calculators
 
 Static Astro site: roofing, fence and deck calculators. Built from `Calculator Site Design` (deep-blue accent).
 
@@ -16,7 +16,6 @@ Static Astro site: roofing, fence and deck calculators. Built from `Calculator S
 
 | Variable | Purpose |
 | --- | --- |
-| `PUBLIC_SITE_URL` | Production origin. Used for canonicals, Open Graph, sitemap and robots.txt. |
 | `PUBLIC_ADSENSE_CLIENT` | `ca-pub-…`. While empty, **no ad code and no ad space** is rendered. |
 | `PUBLIC_ADSENSE_SLOT_SIDEBAR` / `_BELOW_TOOL` / `_IN_CONTENT` | Ad-unit IDs per placement. A placement without an ID is not rendered. |
 | `PUBLIC_AD_PLACEHOLDERS` | `true` shows dashed boxes where ads go (layout review only; ignored once a client ID is set). |
@@ -50,7 +49,7 @@ Create `src/content/guides/<slug>.mdx` with the frontmatter used by `how-to-meas
 
 ## Placeholders to replace before launch
 
-`[BRAND]`, `[Author name]`, `[Reviewer name]`, `[Review date]`, `[contact@brand.com]` — all in `src/config/site.ts`.
+`[Author name]`, `[Reviewer name]`, `[Review date]` and the reviewer credential — all in `src/config/site.ts`.
 
 Legal pages contain bracketed placeholders (`[Effective date]`, `[Company legal name]`, `[Jurisdiction]`, hosting and consent details) and should be reviewed by a professional before launch.
 
