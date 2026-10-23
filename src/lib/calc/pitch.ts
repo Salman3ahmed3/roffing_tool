@@ -238,3 +238,21 @@ export function pitchChartRows(pitches: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1
     return { rise: p, ...f };
   });
 }
+
+/** Compact widget (homepage, guides): rise and run as plain inches. */
+export function evaluateRiseRunInches(riseRaw: string, runRaw: string): PitchEvaluation {
+  const rise = parseNum(riseRaw);
+  const run = parseNum(runRaw);
+  const errors: PitchErrors = {};
+  if (rise === null && run === null) return { ratio: null, empty: true, errors, riseLabel: '', runLabel: '' };
+  if (rise === null) errors.rise = MSG.enterRise;
+  else if (isBad(rise)) errors.rise = MSG.positive;
+  if (run === null) errors.run = MSG.enterRun;
+  else if (isBad(run)) errors.run = MSG.positive;
+  else if (run === 0) errors.run = MSG.runZero;
+  if (errors.rise || errors.run || rise === null || run === null)
+    return { ratio: null, empty: false, errors, riseLabel: '', runLabel: '' };
+  const ratio = rise / run;
+  if (ratio > MAX_RATIO) return { ratio: null, empty: false, errors: { rise: MSG.tooSteep }, riseLabel: '', runLabel: '' };
+  return { ratio, empty: false, errors, riseLabel: `${trimNum(rise, 2)}″`, runLabel: `${trimNum(run, 2)}″` };
+}

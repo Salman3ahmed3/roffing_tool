@@ -137,3 +137,18 @@ describe('evaluatePitch (validation)', () => {
     expect(evaluatePitch(inp({ mode: 'pitch', pitch: '-1' })).errors.pitch).toBe(MSG.positive);
   });
 });
+
+import { evaluateRiseRunInches } from '../src/lib/calc/pitch';
+describe('evaluateRiseRunInches (compact widget)', () => {
+  it('works in plain inches, no 12″ limit', () => {
+    expect(evaluateRiseRunInches('54', '108').ratio).toBe(0.5);
+    expect(evaluateRiseRunInches('14', '24').ratio).toBeCloseTo(14 / 24, 12);
+  });
+  it('validates', () => {
+    expect(evaluateRiseRunInches('', '').empty).toBe(true);
+    expect(evaluateRiseRunInches('6', '0').errors.run).toBe(MSG.runZero);
+    expect(evaluateRiseRunInches('', '12').errors.rise).toBe(MSG.enterRise);
+    expect(evaluateRiseRunInches('-1', '12').errors.rise).toBe(MSG.positive);
+    expect(evaluateRiseRunInches('60', '12').errors.rise).toBe(MSG.tooSteep);
+  });
+});

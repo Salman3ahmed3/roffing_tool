@@ -1,0 +1,324 @@
+---
+/**
+ * Compact roof pitch widget: rise and run in inches.
+ * variant="home"   — homepage hero card with diagram and four results.
+ * variant="inline" — "Try it" box inside guide articles.
+ * "Full calculator →" carries the values to /roof-pitch-calculator/.
+ */
+import { evaluateRiseRunInches, formatPitchResults, pitchResults } from '../../lib/calc/pitch';
+import { DIAGRAM_VIEWBOX, triangleGeometry } from '../../lib/pitch-diagram';
+
+interface Props {
+  variant?: 'home' | 'inline';
+  id?: string;
+}
+const { variant = 'home', id = 'pm' } = Astro.props;
+const RISE = '6';
+const RUN = '12';
+const ev = evaluateRiseRunInches(RISE, RUN);
+const f = formatPitchResults(pitchResults(ev.ratio ?? 0.5));
+const g = triangleGeometry(ev.ratio);
+const full = `/roof-pitch-calculator/?rise=${RISE}&run=${RUN}&u=in`;
+---
+
+<section class:list={['pm', `pm-${variant}`]} data-pitch-mini aria-labelledby={`${id}-h`}>
+  <div class="pm-head">
+    {
+      variant === 'home' ? (
+        <h2 id={`${id}-h`} class="pm-title">Roof Pitch Calculator</h2>
+      ) : (
+        <h3 id={`${id}-h`} class="pm-title">Try it · Roof Pitch Calculator</h3>
+      )
+    }
+    <a class="pm-full" href={full} data-pm-full>Full calculator →</a>
+  </div>
+  <div class="pm-body">
+    <div class="pm-inputs">
+      <div class="field" data-field="rise">
+        <label class="field-label" for={`${id}-rise`}>Rise <span class="hint">· vertical, per run</span></label>
+        <div class="input-group">
+          <input id={`${id}-rise`} name="rise" type="number" inputmode="decimal" min="0" step="any" value={RISE} placeholder="0"
+            aria-describedby={`${id}-rise-err`} />
+          <span class="suffix" aria-hidden="true">in</span>
+        </div>
+        <span class="field-error" id={`${id}-rise-err`} data-error="rise"></span>
+      </div>
+      <div class="field" data-field="run">
+        <label class="field-label" for={`${id}-run`}>Run <span class="hint">· horizontal</span></label>
+        <div class="input-group">
+          <input id={`${id}-run`} name="run" type="number" inputmode="decimal" min="0" step="any" value={RUN} placeholder="12"
+            aria-describedby={`${id}-run-err`} />
+          <span class="suffix" aria-hidden="true">in</span>
+        </div>
+        <span class="field-error" id={`${id}-run-err`} data-error="run"></span>
+      </div>
+      {variant === 'home' && <p class="pm-help">Rise and run in inches. Angle and metric modes on the full calculator.</p>}
+    </div>
+    {
+      variant === 'home' && (
+        <div class="pm-diagram blueprint">
+          <svg viewBox={DIAGRAM_VIEWBOX} width="420" height="230" role="img" aria-label="Roof slope diagram" data-diagram>
+            <polygon data-dg="tri" points={g.points} class="dg-tri" />
+            <path data-dg="arc" d={g.arc} class="dg-arc" />
+            <text data-dg="run" x={g.runX} y={g.runY} text-anchor="middle" class="dg-label">Run {ev.runLabel}</text>
+            <text data-dg="rise" x={g.riseX} y={g.riseY} text-anchor={g.riseAnchor} class="dg-label">Rise {ev.riseLabel}</text>
+            <text data-dg="ang" x={g.angX} y={g.angY} class="dg-ang">{f.angle}</text>
+          </svg>
+        </div>
+      )
+    }
+  </div>
+  <dl class="pm-results" data-results>
+    <div class="primary"><dt>Pitch</dt><dd data-out="pitch">{f.pitch}</dd></div>
+    <div><dt>Angle</dt><dd data-out="angle">{f.angle}</dd></div>
+    <div class:list={{ 'pm-opt': variant === 'inline' }}><dt>Slope</dt><dd data-out="slope">{f.slope}</dd></div>
+    <div><dt>Rafter ×</dt><dd data-out="multiplier">{f.multiplier}</dd></div>
+  </dl>
+  <div class="sr-only" aria-live="polite" data-live></div>
+</section>
+
+<script>
+  import { evaluateRiseRunInches, formatPitchResults, pitchResults } from '../../lib/calc/pitch';
+  import { triangleGeometry } from '../../lib/pitch-diagram';
+  import { trimNum } from '../../lib/calc/units';
+
+  document.querySelectorAll<HTMLElement>('[data-pitch-mini]').forEach((root) => {
+    const rise = root.querySelector<HTMLInputElement>('input[name="rise"]')!;
+    const run = root.querySelector<HTMLInputElement>('input[name="run"]')!;
+    const full = root.querySelector<HTMLAnchorElement>('[data-pm-full]');
+    const live = root.querySelector('[data-live]');
+    let t = 0;
+    const val = (i: HTMLInputElement) => (i.validity.badInput ? 'x' : i.value);
+    const render = () => {
+      const ev = evaluateRiseRunInches(val(rise), val(run));
+      const f = ev.ratio !== null ? formatPitchResults(pitchResults(ev.ratio)) : null;
+      for (const key of ['rise', 'run'] as const) {
+        const msg = ev.errors[key];
+        const field = root.querySelector(`[data-field="${key}"]`);
+        field?.classList.toggle('has-error', Boolean(msg));
+        field?.querySelector('input')?.setAttribute('aria-invalid', String(Boolean(msg)));
+        const e = root.querySelector(`[data-error="${key}"]`);
+        if (e) e.textContent = msg ? `⚠ ${msg}` : '';
+      }
+      root.querySelectorAll<HTMLElement>('[data-out]').forEach((dd) => {
+        const k = dd.dataset.out as keyof NonNullable<typeof f>;
+        dd.textContent = f ? f[k] : '—';
+        dd.classList.toggle('empty', !f);
+      });
+      const svg = root.querySelector('[data-diagram]');
+      if (svg) {
+        const g = triangleGeometry(ev.ratio);
+        svg.closest('.pm-diagram')?.classList.toggle('is-empty', !f);
+        svg.querySelector('[data-dg="tri"]')?.setAttribute('points', g.points);
+        svg.querySelector('[data-dg="arc"]')?.setAttribute('d', g.arc);
+        const set = (sel: string, x: number, y: number, txt: string, anchor?: string) => {
+          const el = svg.querySelector(sel);
+          if (!el) return;
+          el.setAttribute('x', String(x));
+          el.setAttribute('y', String(y));
+          if (anchor) el.setAttribute('text-anchor', anchor);
+          el.textContent = txt;
+        };
+        set('[data-dg="run"]', g.runX, g.runY, `Run ${f ? ev.runLabel : '—'}`);
+        set('[data-dg="rise"]', g.riseX, g.riseY, `Rise ${f ? ev.riseLabel : '—'}`, g.riseAnchor);
+        set('[data-dg="ang"]', g.angX, g.angY, f ? f.angle : '');
+      }
+      if (full) {
+        const r = Number(rise.value);
+        const u = Number(run.value);
+        full.href =
+          f && Number.isFinite(r) && Number.isFinite(u)
+            ? `/roof-pitch-calculator/?rise=${trimNum(r, 4)}&run=${trimNum(u, 4)}&u=in`
+            : '/roof-pitch-calculator/';
+      }
+      window.clearTimeout(t);
+      t = window.setTimeout(() => {
+        if (live) live.textContent = f ? `Pitch ${f.pitch}, angle ${f.angle}` : Object.values(ev.errors).join('. ');
+      }, 700);
+    };
+    rise.addEventListener('input', render);
+    run.addEventListener('input', render);
+    render();
+  });
+</script>
+
+<style>
+  .pm {
+    background: var(--color-surface);
+    border-top: var(--rule);
+    box-shadow: var(--shadow-md);
+  }
+  .pm-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 14px var(--space-4);
+    border-bottom: var(--line);
+  }
+  .pm-title {
+    font-size: 17px;
+    letter-spacing: 0;
+  }
+  .pm-full {
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .pm-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pm-inputs {
+    padding: var(--space-4);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    align-content: start;
+  }
+  .pm-help {
+    grid-column: 1 / -1;
+    font-size: 12px;
+    color: var(--color-neutral-700);
+  }
+  .pm-diagram {
+    padding: var(--space-3) var(--space-4);
+    border-top: var(--line);
+  }
+  .pm-diagram svg {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 420 / 230;
+  }
+  .dg-tri {
+    fill: rgba(31, 75, 192, 0.08);
+    stroke: var(--color-accent);
+    stroke-width: 3;
+  }
+  .dg-arc {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 2;
+  }
+  .dg-label {
+    font-family: var(--font-sans);
+    font-size: 19px;
+    font-weight: 600;
+    fill: var(--color-text);
+  }
+  .dg-ang {
+    font-family: var(--font-sans);
+    font-size: 17px;
+    font-weight: 600;
+    fill: var(--color-accent);
+  }
+  .is-empty .dg-tri {
+    fill: none;
+    stroke: var(--color-neutral-500);
+    stroke-dasharray: 8 6;
+  }
+  .is-empty .dg-arc,
+  .is-empty .dg-ang {
+    display: none;
+  }
+  .pm-results {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 0;
+    border-top: var(--line);
+    font-variant-numeric: tabular-nums;
+  }
+  .pm-results > div {
+    padding: var(--space-3) var(--space-4);
+    min-width: 0;
+  }
+  .pm-results > div:nth-child(odd) {
+    border-right: var(--line);
+  }
+  .pm-results > div:nth-child(-n + 2) {
+    border-bottom: var(--line);
+  }
+  .pm-results dt {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-neutral-700);
+  }
+  .pm-results dd {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  .pm-results .primary dd {
+    color: var(--color-accent);
+  }
+  .pm-results dd.empty {
+    color: var(--color-neutral-600);
+  }
+
+  /* Inline (guide) variant */
+  .pm-inline {
+    box-shadow: none;
+    border: var(--line);
+    border-top: var(--rule);
+    margin: var(--space-6) 0;
+  }
+  .pm-inline .pm-title {
+    font-size: 15px;
+  }
+  .pm-inline .pm-results dd {
+    font-size: 22px;
+  }
+
+  @media (min-width: 640px) {
+    .pm-results {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .pm-results > div {
+      border-bottom: 0 !important;
+      border-right: var(--line);
+    }
+    .pm-results > div:last-child {
+      border-right: 0;
+    }
+    .pm-home .pm-body {
+      grid-template-columns: 1fr 1fr;
+    }
+    .pm-home .pm-inputs {
+      grid-template-columns: 1fr;
+      border-right: var(--line);
+    }
+    .pm-home .pm-diagram {
+      border-top: 0;
+      display: flex;
+      align-items: center;
+    }
+    .dg-label {
+      font-size: 16px;
+    }
+    .dg-ang {
+      font-size: 15px;
+    }
+  }
+  @media (min-width: 900px) {
+    .pm-head {
+      padding: var(--space-4) 20px;
+    }
+    .pm-inputs {
+      padding: 20px;
+    }
+    .pm-results > div {
+      padding: var(--space-4) 20px;
+    }
+    .pm-home .pm-results dd {
+      font-size: 30px;
+    }
+  }
+</style>
