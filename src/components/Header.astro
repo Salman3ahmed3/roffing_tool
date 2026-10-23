@@ -109,12 +109,14 @@ const toolActive = TOOLS.some((t) => t.href === currentPath);
   });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    if (toolsBtn?.getAttribute('aria-expanded') === 'true') {
+    // Mobile: Escape closes the whole menu. Desktop: it closes the Tools dropdown.
+    if (menuBtn?.getAttribute('aria-expanded') === 'true') {
+      setMenu(false);
+      setTools(false);
+      menuBtn.focus();
+    } else if (toolsBtn?.getAttribute('aria-expanded') === 'true') {
       setTools(false);
       toolsBtn.focus();
-    } else if (menuBtn?.getAttribute('aria-expanded') === 'true') {
-      setMenu(false);
-      menuBtn.focus();
     }
   });
 </script>

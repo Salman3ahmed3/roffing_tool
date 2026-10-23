@@ -45,15 +45,13 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
 
 <BaseLayout title={d.seoTitle ?? d.title} rawTitle={false} description={d.description} breadcrumbs={breadcrumbs} jsonLd={jsonLd} ogType="article">
   <div class="container guide">
-    <nav class="toc" aria-labelledby="toc-h">
-      <details class="toc-box" data-toc>
-        <summary id="toc-h">On this page</summary>
-        <ol>
+    <nav class="toc toc-desktop" aria-labelledby="toc-h">
+      <p class="toc-label" id="toc-h">On this page</p>
+      <ol>
           {toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
           {d.faqs.length > 0 && <li><a href="#faq-h">Questions</a></li>}
           {d.sources.length > 0 && <li><a href="#sources-h">Sources</a></li>}
-        </ol>
-      </details>
+      </ol>
     </nav>
 
     <article class="article">
@@ -65,6 +63,17 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
         <span>Reviewed by <b>{d.reviewer}</b>, {SITE.reviewerCredential}</span>
         <span class="muted">Updated <time datetime={d.updated.toISOString().slice(0, 10)}>{fmtDate(d.updated)}</time> · {minutes} min read</span>
       </p>
+
+      <nav class="toc toc-mobile" aria-labelledby="toc-m-h">
+        <details class="toc-box">
+          <summary id="toc-m-h">On this page</summary>
+          <ol>
+          {toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+          {d.faqs.length > 0 && <li><a href="#faq-h">Questions</a></li>}
+          {d.sources.length > 0 && <li><a href="#sources-h">Sources</a></li>}
+          </ol>
+        </details>
+      </nav>
 
       <div class="article-body">
         <Content />
@@ -114,15 +123,6 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
   </div>
 </BaseLayout>
 
-<script>
-  // Collapsed on mobile, always open in the desktop sidebar.
-  const toc = document.querySelector<HTMLDetailsElement>('[data-toc]');
-  const mq = window.matchMedia('(min-width: 1200px)');
-  const sync = () => toc && (toc.open = mq.matches);
-  sync();
-  mq.addEventListener('change', sync);
-</script>
-
 <style>
   .guide {
     display: grid;
@@ -141,8 +141,18 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
     flex-direction: column;
     gap: var(--space-3);
   }
-  .toc {
-    margin-bottom: var(--space-3);
+  .toc-desktop {
+    display: none;
+  }
+  .toc-mobile {
+    margin: var(--space-2) 0;
+  }
+  .toc-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-2);
   }
   .toc-box {
     border: var(--line);
@@ -291,29 +301,17 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
       gap: var(--gutter);
       justify-content: space-between;
     }
-    .toc {
+    .toc-mobile {
+      display: none;
+    }
+    .toc-desktop {
+      display: block;
       position: sticky;
       top: var(--space-6);
       align-self: start;
-      margin: 0;
       padding-top: 48px;
     }
-    .toc-box {
-      border: 0;
-      background: none;
-    }
-    .toc summary {
-      pointer-events: none;
-      padding: 0;
-      font-size: 12px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      list-style: none;
-    }
-    .toc summary::-webkit-details-marker {
-      display: none;
-    }
-    .toc ol {
+    .toc-desktop ol {
       padding: 0;
     }
     .guide-aside {

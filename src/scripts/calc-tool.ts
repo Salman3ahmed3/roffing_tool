@@ -152,7 +152,7 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
   function resultLines(): string[] {
     if (!view.results) return [];
     return $$('[data-results] .result').map((cell) => {
-      const label = cell.querySelector('dt .long, dt')?.textContent?.trim() ?? '';
+      const label = (cell.querySelector('dt .long') ?? cell.querySelector('dt'))?.textContent?.trim() ?? '';
       const key = cell.querySelector<HTMLElement>('[data-out]')?.dataset.out ?? '';
       const r = view.results?.[key];
       return r ? `${label}: ${r.value}${r.sub ? ` (${r.sub})` : ''}` : '';
