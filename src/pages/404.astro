@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { TOOLS } from '../config/site';
+---
+
+<BaseLayout title="Page not found" description="This page does not exist." breadcrumbs={[{ name: 'Home', href: '/' }]} noindex>
+  <div class="container nf">
+    <h1>Page not found</h1>
+    <p>The page you asked for doesn’t exist. Try one of the calculators:</p>
+    <ul>{TOOLS.map((t) => <li><a href={t.href}>{t.name} Calculator</a></li>)}</ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .nf {
+    padding-top: var(--space-12);
+    padding-bottom: var(--space-16);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    font-size: 17px;
+  }
+</style>

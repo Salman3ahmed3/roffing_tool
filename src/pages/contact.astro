@@ -1,0 +1,25 @@
+---
+import ContentPage from '../layouts/ContentPage.astro';
+import { SITE } from '../config/site';
+---
+
+<ContentPage
+  title="Contact"
+  seoTitle={`Contact ${SITE.brand}`}
+  description={`Contact ${SITE.brand} to report a calculation problem, suggest a calculator or ask about the site.`}
+  lede="Found a number that looks wrong, or want a calculator we don’t have yet? We read every message."
+>
+  <h2>Email</h2>
+  <p><a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a></p>
+
+  <h2>Reporting a calculation problem</h2>
+  <p>To help us check it quickly, please include:</p>
+  <ul>
+    <li>The link to your result (use the <b>Share link</b> button on the calculator; it contains your inputs).</li>
+    <li>What you expected to see and where that figure came from.</li>
+  </ul>
+  <p>We review every report against the formula and its sources, and correct the tool and its tests if we find an error.</p>
+
+  <h2>Business enquiries</h2>
+  <p>[Advertising, partnership and press contact details.]</p>
+</ContentPage>
