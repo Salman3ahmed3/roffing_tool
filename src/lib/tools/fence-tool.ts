@@ -120,11 +120,11 @@ export function convertFenceUnits(s: ToolState, to: 'imp' | 'met'): ToolState {
     u: to,
     len: c(s.len, lf, 2),
     space: c(s.space, lf, 2),
-    pw: c(s.pw, sf, 1),
-    gap: c(s.gap, sf, 1),
-    dia: c(s.dia, sf, 1),
-    depth: c(s.depth, sf, 1),
-    gravel: c(s.gravel, sf, 1),
+    pw: c(s.pw, sf, 2),
+    gap: c(s.gap, sf, 2),
+    dia: c(s.dia, sf, 2),
+    depth: c(s.depth, sf, 2),
+    gravel: c(s.gravel, sf, 2),
     bag: bagMap[s.bag] ?? (m ? '30' : '80'),
   };
 }

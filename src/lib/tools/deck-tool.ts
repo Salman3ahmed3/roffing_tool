@@ -100,8 +100,8 @@ export function convertDeckUnits(s: ToolState, to: 'imp' | 'met'): ToolState {
     len: c(s.len, lf, 2),
     dep: c(s.dep, lf, 2),
     blen: c(s.blen, lf, 2),
-    bw: c(s.bw, sf, m ? 0 : 2),
-    gap: c(s.gap, sf, m ? 1 : 3),
+    bw: c(s.bw, sf, m ? 1 : 2),
+    gap: c(s.gap, sf, m ? 2 : 3),
     js: jsMap[s.js] ?? (m ? '400' : '16'),
   };
 }

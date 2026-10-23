@@ -67,8 +67,8 @@ const faqs: Faq[] = [
       />
       <ToolField name="l" label="Length" hint="along the ridge" suffix="ft" suffixMet="m" value={D.l} showWhen="by=footprint" />
       <ToolField name="w" label="Width" hint="gable end" suffix="ft" suffixMet="m" value={D.w} showWhen="by=footprint" />
-      <ToolField name="area" label="Roof area" hint="sloped" suffix="sq ft" suffixMet="m²" value={D.area} showWhen="by=area" />
-      <ToolField name="edge" label="Eaves + rakes" hint="optional" suffix="ft" suffixMet="m" value={D.edge} showWhen="by=area" />
+      <ToolField name="area" label="Roof area" hint="sloped" suffix="sq ft" suffixMet="m²" value={D.area} showWhen="by=area" initiallyHidden={D.by !== 'area'} />
+      <ToolField name="edge" label="Eaves + rakes" hint="optional" suffix="ft" suffixMet="m" value={D.edge} showWhen="by=area" initiallyHidden={D.by !== 'area'} />
       <ToolField name="pitch" label="Pitch" suffix="/ 12" value={D.pitch} tag="From Roof Pitch" />
       <ToolSeg name="shape" legend="Roof shape" value={D.shape} options={[{ value: 'gable', label: 'Gable' }, { value: 'hip', label: 'Hip' }]} />
       <ToolSeg

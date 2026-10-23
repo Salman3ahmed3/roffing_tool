@@ -73,6 +73,7 @@ describe('fence tool', () => {
     const v = evaluateFence(m);
     expect(v.results?.posts.value).toBe('14');
     expect(v.results?.rails.value).toBe('39');
+    expect(v.results?.pickets.value).toBe('219');
   });
 });
 
@@ -86,7 +87,7 @@ describe('deck tool', () => {
   it('metric', () => {
     const m = convertDeckUnits(DECK_DEFAULTS, 'met');
     expect(m.js).toBe('400');
-    expect(m.bw).toBe('140');
+    expect(m.bw).toBe('139.7');
     const v = evaluateDeck(m);
     expect(v.results?.joists.value).toBe('14'); // 4877 mm ÷ 400 mm = 12.2 → 13 spaces + 1 (400 mm is tighter than 16″)
   });

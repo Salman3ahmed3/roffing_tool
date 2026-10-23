@@ -10,14 +10,16 @@ interface Props {
   wide?: boolean;
   /** Show only when another field has a value, e.g. "by=footprint". */
   showWhen?: string;
+  /** Server-side initial visibility for showWhen fields (avoids layout shift). */
+  initiallyHidden?: boolean;
   placeholder?: string;
   tag?: string;
 }
-const { name, label, hint, suffix, suffixMet, value, wide = false, showWhen, placeholder, tag } = Astro.props;
+const { name, label, hint, suffix, suffixMet, value, wide = false, showWhen, placeholder, tag, initiallyHidden = false } = Astro.props;
 const id = `f-${name}`;
 ---
 
-<div class:list={['field', 'cell', { wide }]} data-field={name} data-show-when={showWhen}>
+<div class:list={['field', 'cell', { wide }]} data-field={name} data-show-when={showWhen} hidden={initiallyHidden}>
   <label class="field-label row" for={id}>
     <span>{label}{hint && <span class="hint"> · {hint}</span>}</span>
     {tag && <span class="from-tag" data-from-tag hidden>{tag}</span>}

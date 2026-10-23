@@ -14,11 +14,13 @@ interface Props {
   value: string;
   wide?: boolean;
   showWhen?: string;
+  /** Server-side initial visibility for showWhen fields (avoids layout shift). */
+  initiallyHidden?: boolean;
 }
-const { name, legend, hint, options, value, wide = false, showWhen } = Astro.props;
+const { name, legend, hint, options, value, wide = false, showWhen, initiallyHidden = false } = Astro.props;
 ---
 
-<fieldset class:list={['field', 'cell', { wide }]} data-field={name} data-show-when={showWhen}>
+<fieldset class:list={['field', 'cell', { wide }]} data-field={name} data-show-when={showWhen} hidden={initiallyHidden}>
   <legend class="field-label">{legend}{hint && <span class="hint"> · {hint}</span>}</legend>
   <div class="segr" style={`--n:${options.length}`}>
     {
