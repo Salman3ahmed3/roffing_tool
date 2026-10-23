@@ -17,7 +17,7 @@ export interface NumRule {
  */
 export function readNum(raw: string | undefined, key: string, rule: NumRule, errors: Record<string, string>): number | null {
   const v = parseNum(raw ?? '');
-  const u = rule.unit ? ` ${rule.unit}` : '';
+  const u = rule.unit ? (rule.unit.startsWith('/') ? rule.unit : ` ${rule.unit}`) : '';
   if (v === null) {
     if (rule.required) errors[key] = rule.label ? `Enter the ${rule.label}` : 'Required';
     return null;
