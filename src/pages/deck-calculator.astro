@@ -1,0 +1,146 @@
+---
+import ToolPageLayout from '../layouts/ToolPageLayout.astro';
+import CalcTool from '../components/tools/CalcTool.astro';
+import ToolField from '../components/tools/ToolField.astro';
+import ToolSeg from '../components/tools/ToolSeg.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { SITE } from '../config/site';
+import { DECK_DEFAULTS as D } from '../lib/tools/deck-tool';
+import type { Faq } from '../lib/seo';
+
+const path = '/deck-calculator/';
+const faqs: Faq[] = [
+  {
+    q: 'What joist spacing should I use?',
+    a: '16″ on center is the usual spacing for 5/4 wood and most composite decking laid square to the joists. Diagonal boards and some composites need 12″. 24″ spacing is generally limited to 2× wood decking. Follow IRC Table R507.7 and the decking manufacturer’s instructions.',
+  },
+  {
+    q: 'How many deck boards do I need?',
+    a: 'Count the rows across the deck depth (board width plus gap), multiply by the deck length to get linear feet, add waste for cuts, and divide by the board length you are buying. The calculator does this and rounds up to whole boards.',
+  },
+  {
+    q: 'How much gap should I leave between deck boards?',
+    a: 'Many installers leave about 1/8″ between wood boards. Composite and PVC makers specify their own gaps, which can depend on temperature at installation, so use the figure from the product instructions.',
+  },
+  {
+    q: 'How many screws do I need for a deck?',
+    a: 'Face-screwed boards normally get two screws at every joist they cross. Multiply rows of boards by the number of joists and by two. Hidden-fastener systems use clips instead; check the clip count per square foot on the package.',
+  },
+  {
+    q: 'Does this calculator size beams, posts or footings?',
+    a: 'No. Joist size, beam size, post spacing and footings depend on spans, loads and local code (IRC Section R507). Use the span tables or a designer for framing, and this tool for the board, joist and screw counts.',
+  },
+];
+---
+
+<ToolPageLayout
+  title="Deck Calculator: Boards, Joists & Screws"
+  name="Deck Calculator"
+  description="Free deck calculator. Work out deck boards, joists, rim joists and screws for a rectangular deck from its size, board width and joist spacing."
+  lede="Deck boards, joists, rim joists and screws for a rectangular deck, with waste included."
+  path={path}
+  trade="Outdoor"
+  faqs={faqs}
+>
+  <Fragment slot="tool">
+    <CalcTool
+      spec="deck"
+      label="Deck materials calculator"
+      results={[
+        { key: 'boards', label: 'Deck boards', short: 'Boards' },
+        { key: 'joists', label: 'Joists' },
+        { key: 'rim', label: 'Rim joists', short: 'Rim' },
+        { key: 'screws', label: 'Screws' },
+      ]}
+      listNote="Quantities rounded up to whole boards. Beams, posts, footings, ledger hardware, joist hangers and railings are not included."
+    >
+      <ToolField name="len" label="Length" hint="along house" suffix="ft" suffixMet="m" value={D.len} />
+      <ToolField name="dep" label="Depth" hint="from house" suffix="ft" suffixMet="m" value={D.dep} />
+      <ToolField name="bw" label="Board width" hint="actual" suffix="in" suffixMet="mm" value={D.bw} />
+      <ToolField name="gap" label="Gap" suffix="in" suffixMet="mm" value={D.gap} />
+      <ToolField name="blen" label="Board length" suffix="ft" suffixMet="m" value={D.blen} />
+      <ToolSeg
+        name="js"
+        legend="Joist spacing"
+        value={D.js}
+        options={[
+          { value: '12', label: '12″', met: '300', labelMet: '300 mm' },
+          { value: '16', label: '16″', met: '400', labelMet: '400 mm' },
+          { value: '24', label: '24″', met: '600', labelMet: '600 mm' },
+        ]}
+      />
+      <ToolSeg
+        name="waste"
+        legend="Waste"
+        value={D.waste}
+        wide
+        options={['0', '5', '10', '15'].map((v) => ({ value: v, label: `${v}%` }))}
+      />
+      <p slot="help" class="tool-help small muted">
+        Boards run along the length, joists run across the depth. A nominal 6″ board is 5½″ wide; a 5/4×6 is about 5½″.
+      </p>
+    </CalcTool>
+  </Fragment>
+
+  <section class="section" aria-labelledby="how-h">
+    <h2 id="how-h">How the quantities are calculated</h2>
+    <p class="prose">
+      Rows of boards are counted across the deck’s depth, turned into linear feet along its length and divided by
+      your board length after adding waste. Joists sit at your spacing along the length, with one at each end.
+    </p>
+    <div class="code-block">
+      rows = ⌈(depth + gap) ÷ (board width + gap)⌉<br />
+      boards = ⌈rows × length × (1 + waste %) ÷ board length⌉<br />
+      joists = ⌈length ÷ joist spacing⌉ + 1<br />
+      rim joists = 2 × length<br />
+      screws = rows × joists × 2
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="assume-h">
+    <h2 id="assume-h">Assumptions</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <caption class="sr-only">Assumptions used by the deck calculator</caption>
+        <thead><tr><th scope="col">Item</th><th scope="col">Assumption</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Shape</th><td>Rectangular deck, boards laid square to the joists.</td></tr>
+          <tr><th scope="row">Joists</th><td>One at each end plus one every spacing; each as long as the deck depth.</td></tr>
+          <tr><th scope="row">Rim joists</th><td>Two, each as long as the deck. One may be a ledger on an attached deck.</td></tr>
+          <tr><th scope="row">Screws</th><td>Face-screwed, 2 per board at each joist.</td></tr>
+          <tr><th scope="row">Not included</th><td>Beams, posts, footings, hangers, flashing, stairs, railings, fascia.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <AdSlot placement="inContent" class="ad-gap" />
+
+  <section class="section" aria-labelledby="ex-h">
+    <h2 id="ex-h">Worked example</h2>
+    <p class="prose">A 16 × 12 ft deck with 5½″ boards, ⅛″ gaps, 16 ft boards, joists 16″ on center and 10% waste:</p>
+    <div class="code-block">
+      rows = ⌈144.125 ÷ 5.625⌉ = 26<br />
+      boards = ⌈26 × 16 × 1.10 ÷ 16⌉ = <b class="accent">29</b><br />
+      joists = ⌈192 ÷ 16⌉ + 1 = <b>13</b> at 12 ft<br />
+      screws = 26 × 13 × 2 = <b>676</b>
+    </div>
+  </section>
+
+  <section slot="after-faq" class="section two-col" aria-labelledby="src-h">
+    <div class="col">
+      <h2 class="h-sm" id="src-h">Sources</h2>
+      <ol class="sources">
+        <li>International Code Council, International Residential Code, Section R507 (Decks), including Table R507.7 (decking joist spacing).</li>
+        <li>Decking manufacturers’ installation instructions for gaps, spacing and fasteners.</li>
+      </ol>
+    </div>
+    <div class="col">
+      <h2 class="h-sm">Review</h2>
+      <p class="muted small">
+        <b class="ink">Last reviewed: {SITE.lastReviewed}</b> by {SITE.reviewer}, {SITE.reviewerCredential}.{' '}
+        <a href="/methodology/">Methodology</a>
+      </p>
+    </div>
+  </section>
+</ToolPageLayout>
