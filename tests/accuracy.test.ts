@@ -54,7 +54,7 @@ const show = (v: ToolView, keys: string[], names: string[]) =>
     ? keys.map((k, i) => `${names[i]} ${v.results![k].value}`).join(' · ')
     : `— (${Object.values(v.errors).join('; ') || 'empty'})`;
 
-type Case = [string, Partial<ToolState>, string, string, RegExp?];
+type Case = [string, Record<string, string>, string, string, RegExp?];
 const run = (tool: string, defaults: ToolState, ev: (s: ToolState) => ToolView, keys: string[], names: string[], cases: Case[]) =>
   describe(`accuracy · ${tool}`, () => {
     for (const [label, input, expected, how, status] of cases) {
