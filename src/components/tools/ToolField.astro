@@ -1,0 +1,38 @@
+---
+/** Numeric input cell for the materials-style tools. Suffix switches with the unit system. */
+interface Props {
+  name: string;
+  label: string;
+  hint?: string;
+  suffix?: string;
+  suffixMet?: string;
+  value: string;
+  wide?: boolean;
+  /** Show only when another field has a value, e.g. "by=footprint". */
+  showWhen?: string;
+  placeholder?: string;
+  tag?: string;
+}
+const { name, label, hint, suffix, suffixMet, value, wide = false, showWhen, placeholder, tag } = Astro.props;
+const id = `f-${name}`;
+---
+
+<div class:list={['field', 'cell', { wide }]} data-field={name} data-show-when={showWhen}>
+  <label class="field-label row" for={id}>
+    <span>{label}{hint && <span class="hint"> · {hint}</span>}</span>
+    {tag && <span class="from-tag" data-from-tag hidden>{tag}</span>}
+  </label>
+  <div class="input-group">
+    <input id={id} name={name} type="number" inputmode="decimal" min="0" step="any" value={value} placeholder={placeholder}
+      aria-describedby={`${id}-err`} />
+    {
+      suffix && (
+        <span class="suffix" aria-hidden="true">
+          <span class="u-imp">{suffix}</span>
+          <span class="u-met">{suffixMet ?? suffix}</span>
+        </span>
+      )
+    }
+  </div>
+  <span class="field-error" id={`${id}-err`} data-error></span>
+</div>

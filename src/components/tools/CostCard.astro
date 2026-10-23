@@ -1,0 +1,81 @@
+---
+/**
+ * Installed-cost range. Hidden behind FLAGS.showCostCard until real regional pricing is supplied.
+ * Pass the figures in when they exist; no example numbers ship with the site.
+ */
+import { FLAGS } from '../../config/site';
+interface Props {
+  low?: string;
+  typical?: string;
+  high?: string;
+  note?: string;
+}
+const { low, typical, high, note } = Astro.props;
+const show = FLAGS.showCostCard && low && typical && high;
+---
+
+{
+  show && (
+    <section class="cost" aria-labelledby="cost-h">
+      <div class="cost-head">
+        <h2 id="cost-h">Installed cost range</h2>
+      </div>
+      <dl class="cost-grid">
+        <div><dt>Low</dt><dd>{low}</dd></div>
+        <div class="typ"><dt>Typical</dt><dd>{typical}</dd></div>
+        <div><dt>High</dt><dd>{high}</dd></div>
+      </dl>
+      {note && <p class="cost-note">{note}</p>}
+    </section>
+  )
+}
+
+<style>
+  .cost {
+    margin-top: var(--space-6);
+    background: var(--color-surface);
+    border: var(--line);
+  }
+  .cost-head {
+    padding: var(--space-4) 20px;
+    border-bottom: var(--rule);
+  }
+  .cost-head h2 {
+    font-size: 18px;
+  }
+  .cost-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .cost-grid div {
+    padding: var(--space-4) 20px;
+  }
+  .cost-grid div + div {
+    border-left: var(--line);
+  }
+  .cost-grid .typ {
+    background: var(--color-accent-100);
+  }
+  dt {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-neutral-700);
+  }
+  dd {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+  }
+  .typ dd {
+    color: var(--color-accent);
+  }
+  .cost-note {
+    padding: 0 20px var(--space-4);
+    font-size: 12px;
+    color: var(--color-neutral-700);
+  }
+</style>
