@@ -1,25 +1,11 @@
 /** Clipboard / share / button-feedback helpers shared by every tool. */
 
 export async function copyText(text: string): Promise<boolean> {
+  // The Clipboard API needs a secure context (HTTPS or localhost); the site is served over HTTPS.
   try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch {
-    /* fall through to the legacy path */
-  }
-  try {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.setAttribute('readonly', '');
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    const ok = document.execCommand('copy');
-    ta.remove();
-    return ok;
+    if (!navigator.clipboard) return false;
+    await navigator.clipboard.writeText(text);
+    return true;
   } catch {
     return false;
   }

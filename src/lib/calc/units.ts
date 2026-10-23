@@ -54,3 +54,24 @@ export function cmToInches(cm: number): number {
 export function inchesToCm(inches: number): number {
   return inches * CM_PER_INCH;
 }
+
+export const M_PER_FT = 0.3048;
+export const MM_PER_IN = 25.4;
+export const KG_PER_LB = 0.45359237;
+
+export const mToFt = (m: number) => m / M_PER_FT;
+export const ftToM = (ft: number) => ft * M_PER_FT;
+export const sqmToSqft = (m2: number) => m2 * SQ_FT_PER_SQ_M;
+export const sqftToSqm = (ft2: number) => ft2 / SQ_FT_PER_SQ_M;
+export const mmToIn = (mm: number) => mm / MM_PER_IN;
+export const cmToIn = (cm: number) => cm / CM_PER_INCH;
+export const kgToLb = (kg: number) => kg / KG_PER_LB;
+export const cuftToCum = (cuft: number) => cuft * 0.028316846592;
+
+/**
+ * Round up to a whole unit, ignoring floating-point noise
+ * (e.g. 44.000000001 → 44, not 45).
+ */
+export function ceilQty(x: number): number {
+  return Math.ceil(x - 1e-9);
+}

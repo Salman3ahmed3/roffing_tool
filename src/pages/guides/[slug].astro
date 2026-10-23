@@ -1,0 +1,330 @@
+---
+/**
+ * Guide article template: sticky table of contents · 720px reading column · sticky 300×600 ad.
+ * Content comes from src/content/guides/*.mdx. The only in-body ad is placed by the author,
+ * well after any embedded calculator.
+ */
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import Faq from '../../components/Faq.astro';
+import { SITE, TOOLS } from '../../config/site';
+import { articleLd, faqLd, readingMinutes, type Crumb } from '../../lib/seo';
+
+export async function getStaticPaths() {
+  const guides = await getCollection('guides');
+  return guides.map((g) => ({ params: { slug: g.id }, props: { guide: g } }));
+}
+
+const { guide } = Astro.props;
+const d = guide.data;
+const { Content, headings } = await render(guide);
+const path = `/guides/${guide.id}/`;
+const toc = headings.filter((h) => h.depth === 2);
+const minutes = readingMinutes(guide.body ?? '');
+const fmtDate = (dt: Date) => dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const breadcrumbs: Crumb[] = [{ name: 'Home', href: '/' }, { name: 'Guides' }, { name: d.title, href: path }];
+const tool = TOOLS.find((t) => t.href === d.tool);
+const jsonLd: unknown[] = [
+  articleLd({
+    site: Astro.site!,
+    path,
+    headline: d.title,
+    description: d.description,
+    author: d.author,
+    reviewer: d.reviewer,
+    published: d.published,
+    updated: d.updated,
+    brand: SITE.brand,
+    image: SITE.ogImage,
+  }),
+];
+if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
+---
+
+<BaseLayout title={d.seoTitle ?? d.title} rawTitle={false} description={d.description} breadcrumbs={breadcrumbs} jsonLd={jsonLd} ogType="article">
+  <div class="container guide">
+    <nav class="toc toc-desktop" aria-labelledby="toc-h">
+      <p class="toc-label" id="toc-h">On this page</p>
+      <ol>
+          {toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+          {d.faqs.length > 0 && <li><a href="#faq-h">Questions</a></li>}
+          {d.sources.length > 0 && <li><a href="#sources-h">Sources</a></li>}
+      </ol>
+    </nav>
+
+    <article class="article">
+      <Breadcrumbs items={breadcrumbs} />
+      <h1>{d.title}</h1>
+      <p class="lede">{d.lede}</p>
+      <p class="byline">
+        <span>By <b>{d.author}</b></span>
+        <span>Reviewed by <b>{d.reviewer}</b>, {SITE.reviewerCredential}</span>
+        <span class="muted">Updated <time datetime={d.updated.toISOString().slice(0, 10)}>{fmtDate(d.updated)}</time> · {minutes} min read</span>
+      </p>
+
+      <nav class="toc toc-mobile" aria-labelledby="toc-m-h">
+        <details class="toc-box">
+          <summary id="toc-m-h">On this page</summary>
+          <ol>
+          {toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+          {d.faqs.length > 0 && <li><a href="#faq-h">Questions</a></li>}
+          {d.sources.length > 0 && <li><a href="#sources-h">Sources</a></li>}
+          </ol>
+        </details>
+      </nav>
+
+      <div class="article-body">
+        <Content />
+      </div>
+
+      {d.faqs.length > 0 && <Faq items={d.faqs} title="Questions" />}
+
+      <section class="people" aria-label="Author and reviewer">
+        <div class="person">
+          <span class="avatar" aria-hidden="true"></span>
+          <div><span class="muted small">Written by</span><b>{d.author}</b><span class="small muted">{d.authorBio}</span></div>
+        </div>
+        <div class="person">
+          <span class="avatar" aria-hidden="true"></span>
+          <div>
+            <span class="muted small">Reviewed by</span><b>{d.reviewer}</b>
+            <span class="small muted">{d.reviewerBio} Reviewed {SITE.lastReviewed}.</span>
+          </div>
+        </div>
+      </section>
+
+      {
+        d.sources.length > 0 && (
+          <section class="section" aria-labelledby="sources-h">
+            <h2 id="sources-h" class="h-sm">Sources</h2>
+            <ol class="sources">{d.sources.map((s) => <li>{s}</li>)}</ol>
+          </section>
+        )
+      }
+
+      {
+        tool && (
+          <a class="next-step guide-next" href={tool.href}>
+            <span class="ns-text">
+              <span class="kicker">Calculator</span>
+              <span class="title">Open the {tool.name} Calculator</span>
+            </span>
+            <span class="arrow" aria-hidden="true">→</span>
+          </a>
+        )
+      }
+    </article>
+
+    <aside class="guide-aside">
+      <AdSlot placement="sidebar" />
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .guide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-top: 14px;
+    padding-bottom: var(--space-16);
+  }
+  .guide-aside {
+    display: none;
+  }
+  .article {
+    min-width: 0;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .toc-desktop {
+    display: none;
+  }
+  .toc-mobile {
+    margin: var(--space-2) 0;
+  }
+  .toc-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: var(--space-2);
+  }
+  .toc-box {
+    border: var(--line);
+    background: var(--color-surface);
+  }
+  .toc summary {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-4);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0 var(--space-4) var(--space-3);
+  }
+  .toc a {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    font-size: 14px;
+    color: var(--color-text);
+    text-decoration: none;
+    border-left: 2px solid var(--color-neutral-300);
+    padding-left: var(--space-3);
+  }
+  .toc a:hover {
+    color: var(--color-accent);
+    border-left-color: var(--color-accent);
+  }
+  .lede {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--color-neutral-800);
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-size: 13px;
+    padding-bottom: var(--space-3);
+    border-bottom: var(--rule);
+  }
+  .article-body {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--color-neutral-800);
+  }
+  .article-body :global(h2) {
+    font-size: 24px;
+    color: var(--color-text);
+    margin: var(--space-8) 0 var(--space-3);
+    scroll-margin-top: var(--space-4);
+  }
+  .article-body :global(p),
+  .article-body :global(ul),
+  .article-body :global(ol) {
+    margin: 0 0 var(--space-4);
+  }
+  .article-body :global(li + li) {
+    margin-top: 6px;
+  }
+  .article-body :global(.fig) {
+    margin: var(--space-6) 0;
+  }
+  .article-body :global(.fig-art) {
+    border: var(--line);
+    height: 190px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .article-body :global(.fig-art text) {
+    font-family: var(--font-sans);
+  }
+  .article-body :global(figcaption) {
+    font-size: 13px;
+    color: var(--color-neutral-700);
+    margin-top: 6px;
+  }
+  .article-body :global(.ad-gap) {
+    margin: 40px 0;
+  }
+  .article :global(.section) {
+    margin-top: var(--space-8);
+  }
+  .h-sm {
+    font-size: 22px;
+  }
+  .sources {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .people {
+    margin-top: var(--space-8);
+    display: grid;
+    gap: var(--space-4);
+    border-top: var(--rule);
+    padding-top: var(--space-6);
+  }
+  .person {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+  .person > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .avatar {
+    width: 48px;
+    height: 48px;
+    flex: none;
+    background: var(--color-neutral-200);
+  }
+  .small {
+    font-size: 13px;
+  }
+  .guide-next {
+    margin-top: var(--space-8);
+  }
+
+  @media (min-width: 768px) {
+    .guide {
+      padding-top: 28px;
+    }
+    .article-body :global(h2) {
+      font-size: 28px;
+    }
+    .people {
+      grid-template-columns: 1fr 1fr;
+    }
+    .lede {
+      font-size: 19px;
+    }
+  }
+  @media (min-width: 1200px) {
+    .guide {
+      grid-template-columns: 200px minmax(0, 720px) var(--sidebar);
+      gap: var(--gutter);
+      justify-content: space-between;
+    }
+    .toc-mobile {
+      display: none;
+    }
+    .toc-desktop {
+      display: block;
+      position: sticky;
+      top: var(--space-6);
+      align-self: start;
+      padding-top: 48px;
+    }
+    .toc-desktop ol {
+      padding: 0;
+    }
+    .guide-aside {
+      display: block;
+      position: sticky;
+      top: var(--space-6);
+      align-self: start;
+    }
+  }
+  @media print {
+    .toc,
+    .guide-next {
+      display: none;
+    }
+  }
+</style>

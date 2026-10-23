@@ -61,3 +61,42 @@ export function webAppLd(opts: { site: string | URL; path: string; name: string;
 export function ldJson(data: unknown): string {
   return JSON.stringify(data).replace(/</g, '\\u003c');
 }
+
+export function articleLd(opts: {
+  site: string | URL;
+  path: string;
+  headline: string;
+  description: string;
+  author: string;
+  reviewer: string;
+  published: Date;
+  updated: Date;
+  brand: string;
+  image: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: opts.headline,
+    description: opts.description,
+    mainEntityOfPage: absUrl(opts.site, opts.path),
+    image: absUrl(opts.site, opts.image),
+    datePublished: opts.published.toISOString().slice(0, 10),
+    dateModified: opts.updated.toISOString().slice(0, 10),
+    author: { '@type': 'Person', name: opts.author },
+    publisher: { '@type': 'Organization', name: opts.brand, url: absUrl(opts.site, '/') },
+  };
+}
+
+export function websiteLd(site: string | URL, brand: string, description: string) {
+  return [
+    { '@context': 'https://schema.org', '@type': 'WebSite', name: brand, url: absUrl(site, '/'), description },
+    { '@context': 'https://schema.org', '@type': 'Organization', name: brand, url: absUrl(site, '/'), logo: absUrl(site, '/favicon.svg') },
+  ];
+}
+
+/** Rough reading time at 220 words per minute. */
+export function readingMinutes(text: string): number {
+  const words = text.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 220));
+}

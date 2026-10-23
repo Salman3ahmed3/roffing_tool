@@ -1,0 +1,361 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TrustBadge from '../components/TrustBadge.astro';
+import PitchMini from '../components/tools/PitchMini.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { SITE, TOOLS } from '../config/site';
+import { websiteLd, webAppLd } from '../lib/seo';
+
+const title = `${SITE.brand} — Free Roofing, Fence & Deck Calculators`;
+const description =
+  'Free roofing, fence and deck calculators. Roof pitch, shingle bundles, fence posts and concrete, deck boards and joists — every formula shown and sourced.';
+const guides = (await getCollection('guides')).sort((a, b) => b.data.updated.getTime() - a.data.updated.getTime());
+const fmtDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const jsonLd = [
+  ...websiteLd(Astro.site!, SITE.brand, description),
+  webAppLd({
+    site: Astro.site!,
+    path: '/roof-pitch-calculator/',
+    name: 'Roof Pitch Calculator',
+    description: 'Convert rise and run into roof pitch, angle, slope and rafter multiplier.',
+    brand: SITE.brand,
+  }),
+];
+---
+
+<BaseLayout title={title} rawTitle description={description} breadcrumbs={[{ name: 'Home', href: '/' }]} jsonLd={jsonLd}>
+  <div class="container hero">
+    <div class="hero-text">
+      <p class="kicker">Free roofing · fence · deck calculators</p>
+      <h1>Accurate project numbers in seconds.</h1>
+      <p class="lede">
+        Enter your measurements and get pitch, materials and quantities you can take to the supplier. Every formula is
+        shown and sourced.
+      </p>
+      <TrustBadge />
+    </div>
+    <div class="hero-tool">
+      <PitchMini variant="home" id="home-pm" />
+    </div>
+  </div>
+
+  <div class="container">
+    <section class="block" aria-labelledby="tools-h">
+      <div class="block-head">
+        <h2 id="tools-h">Calculators</h2>
+        <span class="muted">{TOOLS.length} tools · all free, no sign-up</span>
+      </div>
+      <ul class="tools">
+        {
+          TOOLS.map((t) => (
+            <li>
+              <a class="tool-tile" href={t.href}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1f4bc0" stroke-width="1.75" stroke-linecap="square" aria-hidden="true">
+                  <path d={t.icon} />
+                </svg>
+                <b>{t.name}</b>
+                <span class="desc">{t.desc}</span>
+                <span class="go">Open calculator →</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <AdSlot placement="inContent" size="banner" class="home-ad" />
+    </section>
+
+    <section class="block" aria-labelledby="how-h">
+      <div class="block-head">
+        <h2 id="how-h">How our calculators work</h2>
+        <a href="/methodology/" class="head-link">Read the methodology →</a>
+      </div>
+      <div class="how">
+        <div>
+          <h3 class="how-k">01 · Formulas shown</h3>
+          <div class="code-block">angle = atan(rise ÷ run)<br />multiplier = √(rise² + run²) ÷ run</div>
+          <p>Every calculator page lists the formula it uses, so you can check any result by hand.</p>
+        </div>
+        <div>
+          <h3 class="how-k">02 · Sources cited</h3>
+          <ul>
+            <li>International Residential Code, R905 and R507</li>
+            <li>NRCA Roofing Manual: Steep-slope</li>
+            <li>Manufacturer coverage and yield data</li>
+          </ul>
+          <p>Coverage and code limits come from published codes and product data, not guesses.</p>
+        </div>
+        <div>
+          <h3 class="how-k">03 · Tested and reviewed</h3>
+          <p class="big tnum">{SITE.lastReviewed}</p>
+          <p>Each formula has automated tests. Last reviewed by {SITE.reviewer}, {SITE.reviewerCredential}.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block last" aria-labelledby="guides-h">
+      <div class="block-head">
+        <h2 id="guides-h">Guides</h2>
+      </div>
+      <ul class="guides">
+        {
+          guides.map((g) => (
+            <li>
+              <a class="guide-card" href={`/guides/${g.id}/`}>
+                <div class="guide-art blueprint" aria-hidden="true">
+                  <svg width="220" height="120" viewBox="0 0 220 120" fill="none" stroke="#1f4bc0" stroke-width="2">
+                    <path d="M20 105L200 15 M110 60h80 M190 60v-40" />
+                  </svg>
+                </div>
+                <div class="guide-text">
+                  <span class="gk">{g.data.category}</span>
+                  <b>{g.data.title}</b>
+                  <span class="muted small">Updated {fmtDate(g.data.updated)}</span>
+                </div>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    padding-top: var(--space-6);
+    padding-bottom: var(--space-12);
+  }
+  .hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .hero-text > :global(.badge) {
+    align-self: flex-start;
+  }
+  .kicker {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-neutral-700);
+  }
+  h1 {
+    font-size: 32px;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-neutral-800);
+    max-width: 460px;
+  }
+  .hero-tool {
+    margin-inline: calc(-1 * var(--page-margin));
+  }
+  .block {
+    border-top: var(--rule);
+    padding-top: 20px;
+    margin-bottom: var(--space-12);
+  }
+  .block.last {
+    margin-bottom: var(--space-16);
+  }
+  .block-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  .block-head h2 {
+    font-size: 24px;
+  }
+  .head-link {
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .tools,
+  .guides {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tool-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    background: var(--color-surface);
+    border-top: var(--rule);
+    color: var(--color-text);
+    text-decoration: none;
+    height: 100%;
+  }
+  .tool-tile:hover {
+    background: var(--color-neutral-100);
+    color: var(--color-text);
+  }
+  .tool-tile b {
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .tool-tile .desc {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-neutral-700);
+    flex: 1;
+  }
+  .tool-tile .go {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+  :global(.home-ad) {
+    margin-top: var(--space-12);
+  }
+  .how {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+  .how > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-neutral-800);
+  }
+  .how-k {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+  .how ul {
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.7;
+  }
+  .how .code-block {
+    background: var(--color-neutral-100);
+    border: 0;
+    white-space: normal;
+  }
+  .big {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--color-text);
+  }
+  .guide-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    height: 100%;
+  }
+  .guide-card:hover {
+    background: var(--color-neutral-100);
+    color: var(--color-text);
+  }
+  .guide-art {
+    height: 170px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: var(--line);
+  }
+  .guide-text {
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .gk {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-neutral-700);
+  }
+  .guide-text b {
+    font-size: 18px;
+    line-height: 1.25;
+    font-weight: 800;
+  }
+  .small {
+    font-size: 13px;
+  }
+
+  @media (min-width: 640px) {
+    .tools {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .guides {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .hero-tool {
+      margin-inline: 0;
+    }
+  }
+  @media (min-width: 1000px) {
+    .hero {
+      grid-template-columns: 5fr 7fr;
+      gap: var(--space-16);
+      padding-top: 72px;
+      padding-bottom: var(--space-16);
+      align-items: start;
+    }
+    .hero-text {
+      gap: 20px;
+      padding-top: var(--space-3);
+    }
+    h1 {
+      font-size: 56px;
+      line-height: 1.02;
+    }
+    .lede {
+      font-size: 19px;
+    }
+    .tools {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-6);
+    }
+    .tool-tile {
+      min-height: 180px;
+    }
+    .how {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0;
+      border-left: var(--line);
+    }
+    .how > div {
+      padding: 4px var(--space-6);
+      border-right: var(--line);
+    }
+    .guides {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-6);
+    }
+    .block {
+      margin-bottom: 72px;
+    }
+    .block-head h2 {
+      font-size: 28px;
+    }
+  }
+</style>

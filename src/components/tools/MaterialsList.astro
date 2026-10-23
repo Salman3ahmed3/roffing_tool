@@ -1,0 +1,37 @@
+---
+import type { ListItem } from '../../lib/tools/types';
+interface Props {
+  items: ListItem[];
+  meta: string;
+  note?: string;
+}
+const { items, meta, note = 'Quantities rounded up to whole packages. Check coverage on your product’s label.' } = Astro.props;
+---
+
+<section class="mlist" aria-labelledby="mlist-h" data-mlist>
+  <div class="mlist-head">
+    <div class="mlist-title">
+      <h2 id="mlist-h">Materials list</h2>
+      <span class="muted" data-list-meta>{meta}</span>
+    </div>
+    <div class="mlist-btns">
+      <button type="button" class="btn btn-secondary" data-act="print">Print list</button>
+      <a class="btn btn-secondary" href="mailto:" data-act-email>Email list</a>
+    </div>
+  </div>
+  <ul class="mlist-items" data-list>
+    {
+      items.map((it) => (
+        <li>
+          <label>
+            <input type="checkbox" data-key={it.name} />
+            <span class="name">{it.name}</span>
+            <b class="qty">{it.qty}</b>
+            <span class="unit">{it.unit}</span>
+          </label>
+        </li>
+      ))
+    }
+  </ul>
+  <p class="mlist-note">{note}</p>
+</section>

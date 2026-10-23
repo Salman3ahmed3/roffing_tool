@@ -1,0 +1,104 @@
+---
+import ContentPage from '../layouts/ContentPage.astro';
+import { SITE } from '../config/site';
+---
+
+<ContentPage
+  title="Methodology"
+  seoTitle="Calculator Methodology: Formulas, Sources & Testing"
+  description={`How ${SITE.brand} calculators work: every formula, assumption and source, plus how the maths is tested and reviewed.`}
+  lede="Every calculator on this site uses published formulas, states its assumptions and is covered by automated tests. This page collects them in one place."
+>
+  <h2>Principles</h2>
+  <ul>
+    <li><b>Show the work.</b> Each tool prints its formula and a worked line for your own numbers.</li>
+    <li><b>Round up, never down.</b> Materials are rounded up to whole packages so you are not left short.</li>
+    <li><b>No stale answers.</b> If an input is missing or invalid, results are cleared until it is fixed.</li>
+    <li><b>Units are converted, not approximated.</b> 1 ft = 0.3048 m and 1 in = 25.4 mm exactly.</li>
+  </ul>
+
+  <h2 id="roof-pitch">Roof pitch</h2>
+  <div class="code-block">
+    ratio = rise ÷ run<br />
+    pitch = ratio × 12 (shown as x/12)<br />
+    angle = atan(ratio) × 180 ÷ π<br />
+    slope % = ratio × 100<br />
+    rafter multiplier = √(1 + ratio²)
+  </div>
+  <p>
+    Accepted range: 0/12 to 48/12, or 0° to 75°. Pitch is shown to two decimals, angle to two decimals, slope to one
+    decimal and the multiplier to three. The advisory line uses the International Residential Code limits for asphalt
+    shingles: below 2/12 not permitted, 2/12 to under 4/12 double underlayment (R905.2.2, R905.1.1). Above 9/12 is
+    flagged as steep, which is our working threshold, not a code value.
+  </p>
+
+  <h2 id="roofing">Roofing materials</h2>
+  <div class="code-block">
+    roof area = footprint × rafter multiplier<br />
+    order area = roof area × (1 + waste %)<br />
+    squares = order area ÷ 100 · bundles = ⌈squares × 3⌉<br />
+    underlayment rolls = ⌈order area × layers ÷ roll coverage⌉<br />
+    drip edge pieces = ⌈(eaves + rakes) ÷ (10 ft − 2″)⌉
+  </div>
+  <ul>
+    <li>Every roof plane is assumed to share one pitch. For mixed pitches, calculate each section separately.</li>
+    <li>Footprint is measured to the outside of the overhangs.</li>
+    <li>Three bundles per square. Some heavier shingles use more; check the wrapper.</li>
+    <li>Underlayment roll coverage is nominal (synthetic 10 squares, #15 felt 4, #30 felt 2). Two layers are counted from 2/12 to under 4/12.</li>
+    <li>Drip edge: gable roofs have 2 eaves and 4 sloped rakes; hip roofs have eaves on all four sides. Pieces overlap at least 2″ (IRC R905.2.8.5).</li>
+    <li>Not included: starter strip, ridge cap, flashing, vents, nails.</li>
+  </ul>
+
+  <h2 id="fence">Fence</h2>
+  <div class="code-block">
+    sections = ⌈length ÷ post spacing⌉ · posts = sections + 1 + corners<br />
+    rails = sections × rails per section<br />
+    pickets = ⌈length ÷ (picket width + gap)⌉<br />
+    concrete per post = (π × (Ø ÷ 2)² − post²) × (hole depth − gravel)<br />
+    bags = ⌈posts × concrete per post ÷ (bag weight × 0.0075 ft³/lb)⌉
+  </div>
+  <ul>
+    <li>Straight runs; each corner adds one post. Gates are not included.</li>
+    <li>Post widths are actual sizes: 4×4 = 3½″, 6×6 = 5½″.</li>
+    <li>Bag yield of 0.0075 ft³ per lb matches common published yields (0.60 ft³ per 80 lb bag). Metric bags use the same ratio.</li>
+  </ul>
+
+  <h2 id="deck">Deck</h2>
+  <div class="code-block">
+    rows = ⌈(depth + gap) ÷ (board width + gap)⌉<br />
+    boards = ⌈rows × length × (1 + waste %) ÷ board length⌉<br />
+    joists = ⌈length ÷ spacing⌉ + 1 · rim joists = 2<br />
+    screws = rows × joists × 2
+  </div>
+  <ul>
+    <li>Rectangular deck, boards square to the joists, two face screws per board at every joist.</li>
+    <li>Framing sizes, beams, posts and footings are not calculated; they depend on span tables and local code (IRC R507).</li>
+  </ul>
+
+  <h2>Testing</h2>
+  <p>
+    All formulas live in a separate, pure code module with automated tests. Tests check reference values (for example
+    6/12 = 26.57° and a 1.118 multiplier, 12/12 = 45°), edge cases such as zero run, flat roofs and exact multiples,
+    rounding, unit conversion and input validation. The site does not build if a test fails.
+  </p>
+
+  <h2>Review</h2>
+  <p>
+    Formulas and content were last reviewed on {SITE.lastReviewed} by {SITE.reviewer}, {SITE.reviewerCredential}.
+    Each tool page shows its own review date.
+  </p>
+
+  <h2>Sources</h2>
+  <ol>
+    <li>International Code Council, International Residential Code: R905.1.1, R905.2.2, R905.2.8.5 (roofing); R507 and Table R507.7 (decks).</li>
+    <li>National Roofing Contractors Association, The NRCA Roofing Manual: Steep-slope Roof Systems.</li>
+    <li>U.S. OSHA, 29 CFR 1926.501(b)(13), fall protection in residential construction.</li>
+    <li>Manufacturer product data for shingle bundle coverage, underlayment roll coverage and concrete mix yield.</li>
+  </ol>
+
+  <h2>Corrections</h2>
+  <p>
+    If you think a result is wrong, send the Share link from the calculator to <a href="/contact/">our contact page</a>.
+    We check every report and update both the tool and its tests when we find an error.
+  </p>
+</ContentPage>

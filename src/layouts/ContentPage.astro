@@ -1,0 +1,82 @@
+---
+/** Plain reading page (About, Contact, Privacy, Terms, Methodology). No ads. */
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import type { Crumb } from '../lib/seo';
+
+interface Props {
+  title: string;
+  seoTitle?: string;
+  description: string;
+  lede?: string;
+  jsonLd?: unknown[];
+}
+const { title, seoTitle, description, lede, jsonLd = [] } = Astro.props;
+const breadcrumbs: Crumb[] = [{ name: 'Home', href: '/' }, { name: title, href: Astro.url.pathname }];
+---
+
+<BaseLayout title={seoTitle ?? title} description={description} breadcrumbs={breadcrumbs} jsonLd={jsonLd}>
+  <div class="container page">
+    <Breadcrumbs items={breadcrumbs} />
+    <h1>{title}</h1>
+    {lede && <p class="lede">{lede}</p>}
+    <div class="page-body">
+      <slot />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: calc(720px + 2 * var(--page-margin));
+    padding-top: 14px;
+    padding-bottom: var(--space-16);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .lede {
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--color-neutral-800);
+    padding-bottom: var(--space-4);
+    border-bottom: var(--rule);
+  }
+  .page-body {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-neutral-800);
+  }
+  .page-body :global(h2) {
+    font-size: 22px;
+    color: var(--color-text);
+    margin: var(--space-8) 0 var(--space-3);
+  }
+  .page-body :global(h3) {
+    font-size: 18px;
+    color: var(--color-text);
+    margin: var(--space-6) 0 var(--space-2);
+  }
+  .page-body :global(p),
+  .page-body :global(ul),
+  .page-body :global(ol) {
+    margin: 0 0 var(--space-4);
+  }
+  .page-body :global(.code-block) {
+    margin: 0 0 var(--space-4);
+  }
+  .page-body :global(.table-wrap) {
+    margin: 0 0 var(--space-4);
+  }
+  @media (min-width: 768px) {
+    .page {
+      padding-top: 28px;
+    }
+    .page-body {
+      font-size: 17px;
+    }
+    .page-body :global(h2) {
+      font-size: 26px;
+    }
+  }
+</style>

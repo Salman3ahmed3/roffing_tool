@@ -1,0 +1,152 @@
+---
+import ToolPageLayout from '../layouts/ToolPageLayout.astro';
+import CalcTool from '../components/tools/CalcTool.astro';
+import ToolField from '../components/tools/ToolField.astro';
+import ToolSeg from '../components/tools/ToolSeg.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { SITE } from '../config/site';
+import { FENCE_DEFAULTS as D } from '../lib/tools/fence-tool';
+import type { Faq } from '../lib/seo';
+
+const path = '/fence-calculator/';
+const faqs: Faq[] = [
+  {
+    q: 'How far apart should fence posts be?',
+    a: 'Most wood privacy and picket fences use posts 6 to 8 ft apart, measured center to center. 8 ft spacing matches common 8 ft rail stock; closer spacing makes a stiffer fence, which helps in windy areas or with heavy panels.',
+  },
+  {
+    q: 'How deep should fence post holes be?',
+    a: 'A common rule of thumb is to bury about one-third of the post’s total length, and at least 24 inches. In cold climates the hole usually needs to go below the frost line. Check your local building code or permit office before digging.',
+  },
+  {
+    q: 'How many bags of concrete do I need per post?',
+    a: 'It depends on the hole. A 10″ hole with 24″ of concrete around a 4×4 post needs about 0.92 ft³, roughly 1.5 bags of 80 lb mix (each yields about 0.60 ft³). The calculator works this out for your hole size, gravel base and bag size.',
+  },
+  {
+    q: 'How many pickets are in an 8 ft section?',
+    a: 'Divide the section length by the picket width plus the gap. With 5½″ pickets and no gap, 96″ ÷ 5.5″ = 17.5, so you need 18 pickets per 8 ft section.',
+  },
+  {
+    q: 'Does the calculator include gates?',
+    a: 'No. Gates need their own posts, hinges and latch hardware. Leave the gate openings out of the fence length and add each gate separately.',
+  },
+];
+---
+
+<ToolPageLayout
+  title="Fence Calculator: Posts, Rails, Pickets & Concrete"
+  name="Fence Calculator"
+  description="Free fence calculator. Work out fence posts, rails, pickets and bags of concrete for any fence length, post spacing and hole size, in feet or metric."
+  lede="Posts, rails, pickets and bags of concrete for any fence length, with your post spacing and hole size."
+  path={path}
+  trade="Outdoor"
+  faqs={faqs}
+>
+  <Fragment slot="tool">
+    <CalcTool
+      spec="fence"
+      label="Fence materials calculator"
+      results={[
+        { key: 'posts', label: 'Posts' },
+        { key: 'rails', label: 'Rails' },
+        { key: 'pickets', label: 'Pickets' },
+        { key: 'bags', label: 'Concrete bags', short: 'Concrete' },
+      ]}
+      listNote="Quantities rounded up to whole pieces and bags. Gates, post caps, brackets and fasteners are not included."
+    >
+      <ToolField name="len" label="Fence length" hint="total run" suffix="ft" suffixMet="m" value={D.len} />
+      <ToolField name="space" label="Post spacing" hint="on center" suffix="ft" suffixMet="m" value={D.space} />
+      <ToolField name="corners" label="Corners" suffix="corners" value={D.corners} />
+      <ToolSeg
+        name="rails"
+        legend="Rails per section"
+        value={D.rails}
+        options={[{ value: '2', label: '2' }, { value: '3', label: '3' }, { value: '4', label: '4' }]}
+      />
+      <ToolField name="pw" label="Picket width" suffix="in" suffixMet="cm" value={D.pw} />
+      <ToolField name="gap" label="Gap" hint="0 for privacy" suffix="in" suffixMet="cm" value={D.gap} />
+      <ToolSeg name="post" legend="Post size" value={D.post} options={[{ value: '4x4', label: '4×4' }, { value: '6x6', label: '6×6' }]} wide />
+      <ToolField name="dia" label="Hole diameter" suffix="in" suffixMet="cm" value={D.dia} />
+      <ToolField name="depth" label="Hole depth" suffix="in" suffixMet="cm" value={D.depth} />
+      <ToolField name="gravel" label="Gravel base" suffix="in" suffixMet="cm" value={D.gravel} />
+      <ToolSeg
+        name="bag"
+        legend="Concrete bag"
+        value={D.bag}
+        options={[
+          { value: '50', label: '50 lb', met: '20', labelMet: '20 kg' },
+          { value: '60', label: '60 lb', met: '25', labelMet: '25 kg' },
+          { value: '80', label: '80 lb', met: '30', labelMet: '30 kg' },
+        ]}
+      />
+      <p slot="help" class="tool-help small muted">
+        Rails: 2 per section for fences up to 4 ft tall, 3 up to 6 ft, 4 for taller fences. Measure the run without gate
+        openings.
+      </p>
+    </CalcTool>
+  </Fragment>
+
+  <section class="section" aria-labelledby="how-h">
+    <h2 id="how-h">How the quantities are calculated</h2>
+    <p class="prose">
+      The fence is split into sections at your post spacing. Every section needs its rails; posts are one more than
+      the sections, plus one for each corner. Concrete is the volume of each hole above the gravel base, minus the
+      post itself.
+    </p>
+    <div class="code-block">
+      sections = ⌈length ÷ post spacing⌉<br />
+      posts = sections + 1 + corners<br />
+      rails = sections × rails per section<br />
+      pickets = ⌈length ÷ (picket width + gap)⌉<br />
+      concrete per post = (π × (Ø ÷ 2)² − post²) × (depth − gravel)<br />
+      bags = ⌈posts × concrete per post ÷ bag yield⌉
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="assume-h">
+    <h2 id="assume-h">Assumptions</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <caption class="sr-only">Assumptions used by the fence calculator</caption>
+        <thead><tr><th scope="col">Item</th><th scope="col">Assumption</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Layout</th><td>Straight runs. Each corner adds one post.</td></tr>
+          <tr><th scope="row">Post size</th><td>Actual widths: 4×4 = 3½″, 6×6 = 5½″.</td></tr>
+          <tr><th scope="row">Concrete yield</th><td>0.0075 ft³ per lb of dry mix (0.60 ft³ per 80 lb, 0.45 per 60 lb, 0.375 per 50 lb). Metric bags use the same ratio.</td></tr>
+          <tr><th scope="row">Rails</th><td>One rail spans one section, so rail length = post spacing.</td></tr>
+          <tr><th scope="row">Not included</th><td>Gates, post caps, brackets, nails or screws, stain.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <AdSlot placement="inContent" class="ad-gap" />
+
+  <section class="section" aria-labelledby="ex-h">
+    <h2 id="ex-h">Worked example</h2>
+    <p class="prose">A 100 ft straight privacy fence with posts every 8 ft, 3 rails, 5½″ pickets, 10″ × 30″ holes with 6″ of gravel and 80 lb bags:</p>
+    <div class="code-block">
+      sections = ⌈100 ÷ 8⌉ = 13 · posts = <b class="accent">14</b> · rails = <b>39</b><br />
+      pickets = ⌈1,200″ ÷ 5.5″⌉ = <b>219</b><br />
+      concrete per post = (π × 5² − 3.5²) × 24 ÷ 1,728 = 0.92 ft³<br />
+      bags = ⌈14 × 0.92 ÷ 0.60⌉ = <b>22</b>
+    </div>
+  </section>
+
+  <section slot="after-faq" class="section two-col" aria-labelledby="src-h">
+    <div class="col">
+      <h2 class="h-sm" id="src-h">Sources</h2>
+      <ol class="sources">
+        <li>Concrete mix manufacturers’ published bag yields (yield is printed on each bag).</li>
+        <li>Your local building code and permit office for post depth, frost line and fence height limits.</li>
+      </ol>
+    </div>
+    <div class="col">
+      <h2 class="h-sm">Review</h2>
+      <p class="muted small">
+        <b class="ink">Last reviewed: {SITE.lastReviewed}</b> by {SITE.reviewer}, {SITE.reviewerCredential}.{' '}
+        <a href="/methodology/">Methodology</a>
+      </p>
+    </div>
+  </section>
+</ToolPageLayout>

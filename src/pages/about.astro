@@ -1,0 +1,39 @@
+---
+import ContentPage from '../layouts/ContentPage.astro';
+import { SITE, TOOLS } from '../config/site';
+---
+
+<ContentPage
+  title="About"
+  seoTitle={`About ${SITE.brand}`}
+  description={`${SITE.brand} builds free, transparent calculators for roofing, fencing and decking projects. Every formula is shown, sourced and tested.`}
+  lede={`${SITE.brand} makes free calculators for roofing, fence and deck projects, built so you can see exactly how every number is worked out.`}
+>
+  <h2>What we do</h2>
+  <p>
+    Homeowners and contractors use our tools to turn a few measurements into numbers they can act on: a roof’s pitch,
+    how many bundles of shingles to order, how many posts and bags of concrete a fence needs, or how many boards cover
+    a deck.
+  </p>
+  <ul>{TOOLS.map((t) => <li><a href={t.href}>{t.name} Calculator</a> — {t.desc}</li>)}</ul>
+
+  <h2>How we work</h2>
+  <p>
+    Every calculator shows its formula and the assumptions behind it, cites the codes and product data it relies on,
+    and is covered by automated tests. Calculations run in your browser; nothing you type is sent to us or stored. See
+    the <a href="/methodology/">methodology</a> for details.
+  </p>
+
+  <h2>Who is behind {SITE.brand}</h2>
+  <p>[Company background: who runs the site, trade experience, location.]</p>
+  <p>
+    Content is written by {SITE.author} and reviewed by {SITE.reviewer}, {SITE.reviewerCredential}. [Add credentials,
+    licence numbers and photos.]
+  </p>
+
+  <h2>Estimates, not quotes</h2>
+  <p>
+    Results are planning estimates. Always confirm quantities with your supplier, follow the manufacturer’s
+    instructions and check your local building code before you buy or build.
+  </p>
+</ContentPage>

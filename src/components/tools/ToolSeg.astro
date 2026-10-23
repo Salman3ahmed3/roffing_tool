@@ -1,0 +1,36 @@
+---
+/** Segmented control built from real radio buttons. Options may carry a metric value/label. */
+interface Opt {
+  value: string;
+  label: string;
+  met?: string;
+  labelMet?: string;
+}
+interface Props {
+  name: string;
+  legend: string;
+  hint?: string;
+  options: Opt[];
+  value: string;
+  wide?: boolean;
+  showWhen?: string;
+  /** Server-side initial visibility for showWhen fields (avoids layout shift). */
+  initiallyHidden?: boolean;
+}
+const { name, legend, hint, options, value, wide = false, showWhen, initiallyHidden = false } = Astro.props;
+---
+
+<fieldset class:list={['field', 'cell', { wide }]} data-field={name} data-show-when={showWhen} hidden={initiallyHidden}>
+  <legend class="field-label">{legend}{hint && <span class="hint"> · {hint}</span>}</legend>
+  <div class="segr" style={`--n:${options.length}`}>
+    {
+      options.map((o) => (
+        <label class="segr-opt">
+          <input type="radio" name={name} value={o.value} checked={o.value === value} data-imp={o.value} data-met={o.met ?? o.value} />
+          <span data-imp-label={o.label} data-met-label={o.labelMet ?? o.label}>{o.label}</span>
+        </label>
+      ))
+    }
+  </div>
+  <span class="field-error" data-error></span>
+</fieldset>

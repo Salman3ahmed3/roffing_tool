@@ -461,6 +461,31 @@ code,
   }
 }
 
+/* ── Tool block ───────────────────────────────────────── */
+.tool {
+  background: var(--color-surface);
+  border-top: var(--rule);
+  box-shadow: var(--shadow-md);
+}
+.print-only {
+  display: none;
+}
+.tool-help {
+  margin-top: var(--space-3);
+}
+@media print {
+  .tool-help {
+    display: none;
+  }
+  .tool {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  .print-only {
+    display: block;
+  }
+}
+
 /* ── Status note ──────────────────────────────────────── */
 .note {
   font-size: 13px;

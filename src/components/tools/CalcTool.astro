@@ -1,0 +1,396 @@
+---
+/**
+ * Shell for the materials-style calculators. Fields go in the default slot.
+ * Server-renders the default result so numbers are visible before JS runs;
+ * /src/scripts/calc-tool.ts restores state from the URL and keeps everything live.
+ */
+import ToolActions from './ToolActions.astro';
+import MaterialsList from './MaterialsList.astro';
+import { SPECS, type SpecId } from '../../lib/tools/registry';
+
+interface Props {
+  spec: SpecId;
+  label: string;
+  results: { key: string; label: string; short?: string }[];
+  listNote?: string;
+}
+const { spec, label, results, listNote } = Astro.props;
+const s = SPECS[spec];
+const view = s.evaluate(s.defaults);
+---
+
+<div class="calc" data-calc={spec} data-unit={s.defaults.u}>
+  <section class="tool calc-tool" aria-label={label}>
+    <div class="calc-head">
+      <div class="units-row">
+        <span class="units-label" id={`${spec}-units`}>Units</span>
+        <div class="segr compact" role="radiogroup" aria-labelledby={`${spec}-units`} style="--n:2">
+          <label class="segr-opt"><input type="radio" name="u" value="imp" checked={s.defaults.u === 'imp'} /><span>ft / in</span></label>
+          <label class="segr-opt"><input type="radio" name="u" value="met" checked={s.defaults.u === 'met'} /><span>Metric</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="calc-fields">
+      <slot />
+    </div>
+    <p class="note calc-status" data-status data-tone={view.status.tone}>{view.status.text}</p>
+
+    <dl class="results four" data-results>
+      {
+        results.map((r, i) => (
+          <div class:list={['result', { primary: i === 0 }]}>
+            <dt>
+              {r.short ? (
+                <>
+                  <span class="long">{r.label}</span>
+                  <span class="short" aria-hidden="true">{r.short}</span>
+                </>
+              ) : (
+                r.label
+              )}
+            </dt>
+            <dd data-out={r.key}>{view.results?.[r.key]?.value ?? '—'}</dd>
+            <dd class="sub" data-sub={r.key}>{view.results?.[r.key]?.sub ?? ''}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    <p class="calc-summary tnum" data-summary>{view.summary}</p>
+    <ToolActions />
+    <p class="print-only print-url">Results link: <span data-print-url></span></p>
+    <div class="sr-only" aria-live="polite" aria-atomic="true" data-live></div>
+  </section>
+  <slot name="help" />
+
+  <MaterialsList items={view.list} meta={view.listMeta} note={listNote} />
+</div>
+
+<script>
+  import { initCalcTool } from '../../scripts/calc-tool';
+  import { SPECS, type SpecId } from '../../lib/tools/registry';
+  document.querySelectorAll<HTMLElement>('[data-calc]').forEach((el) => {
+    const spec = SPECS[el.dataset.calc as SpecId];
+    if (spec) initCalcTool(el, spec);
+  });
+</script>
+
+<style is:global>
+  .calc-head {
+    padding: var(--space-4) var(--space-4) 0;
+  }
+  .calc .units-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .calc .units-label {
+    font-size: 13px;
+    color: var(--color-neutral-700);
+  }
+  .calc-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px var(--space-3);
+    padding: 14px var(--space-4) var(--space-4);
+  }
+  .calc-fields .cell.wide {
+    grid-column: 1 / -1;
+  }
+  .calc-fields [hidden] {
+    display: none !important;
+  }
+  .calc .field-label.row {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+    align-items: baseline;
+  }
+  .from-tag {
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--color-accent-100);
+    color: var(--color-accent-800);
+    padding: 2px 6px;
+    white-space: nowrap;
+  }
+  .from-tag[hidden] {
+    display: none;
+  }
+  .calc[data-unit='imp'] .u-met,
+  .calc[data-unit='met'] .u-imp {
+    display: none;
+  }
+  .calc-status {
+    margin: 0 var(--space-4) var(--space-4);
+  }
+  .calc-status[data-tone='warn'] {
+    background: #fdf3e1;
+    color: #5c3d00;
+    border-left: 3px solid #8f5f06;
+  }
+  .calc .results .result dd.sub {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--color-neutral-700);
+    white-space: normal;
+  }
+  .calc-summary {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border-top: var(--line);
+    font-size: 13px;
+    color: var(--color-neutral-700);
+  }
+  .calc .tool-actions {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-top: var(--line);
+  }
+  .calc .tool-actions .btn {
+    padding: 0 var(--space-3);
+  }
+  .calc .share-url {
+    display: none;
+  }
+
+  /* Radio segmented control */
+  .segr {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    border: 1px solid var(--color-neutral-500);
+    background: var(--color-surface);
+    min-height: 48px;
+  }
+  .segr.compact {
+    display: inline-grid;
+    min-height: 40px;
+  }
+  .segr-opt {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .segr.compact .segr-opt {
+    font-size: 13px;
+    padding: 0 14px;
+  }
+  .segr-opt + .segr-opt {
+    border-left: 1px solid var(--color-neutral-500);
+  }
+  .segr-opt input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+  .segr-opt:has(input:checked) {
+    background: var(--color-text);
+    color: #fff;
+  }
+  .segr-opt:not(:has(input:checked)):hover {
+    background: var(--color-neutral-100);
+  }
+  .segr-opt:has(input:focus-visible) {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -4px;
+  }
+  .input-group.select select {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    padding: 0 var(--space-3);
+    font-size: 15px;
+    color: var(--color-text);
+  }
+
+  /* Materials list */
+  .mlist {
+    margin-top: var(--space-6);
+    background: var(--color-surface);
+    border: var(--line);
+  }
+  .mlist-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-bottom: var(--rule);
+  }
+  .mlist-title {
+    display: flex;
+    flex-direction: column;
+  }
+  .mlist-title h2 {
+    font-size: 18px;
+    letter-spacing: 0;
+  }
+  .mlist-title .muted {
+    font-size: 12px;
+  }
+  .mlist-btns {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .mlist-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .mlist-items li {
+    border-bottom: 1px dashed var(--color-neutral-400);
+  }
+  .mlist-items label {
+    display: grid;
+    grid-template-columns: 22px 1fr auto 56px;
+    gap: 12px;
+    align-items: center;
+    min-height: 52px;
+    padding: 4px var(--space-4);
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .mlist-items input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--color-accent);
+  }
+  .mlist-items .qty {
+    font-size: 18px;
+    text-align: right;
+  }
+  .mlist-items .unit {
+    font-size: 13px;
+    color: var(--color-neutral-700);
+  }
+  .mlist-items li:has(input:checked) .name {
+    text-decoration: line-through;
+    color: var(--color-neutral-700);
+  }
+  .mlist-items:empty::before {
+    content: 'Enter valid measurements to build the list.';
+    display: block;
+    padding: var(--space-4);
+    color: var(--color-neutral-700);
+    font-size: 14px;
+  }
+  .mlist-note {
+    margin: 0;
+    padding: 14px var(--space-4);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-neutral-700);
+  }
+
+  @media (min-width: 900px) {
+    .calc-head {
+      padding: var(--space-6) var(--space-6) 0;
+    }
+    .calc-fields {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 20px;
+      padding: 20px var(--space-6) var(--space-6);
+    }
+    .calc-fields .cell.wide {
+      grid-column: span 2;
+    }
+    .calc-status {
+      margin: 0 var(--space-6) var(--space-6);
+    }
+    .calc-summary {
+      padding: var(--space-3) var(--space-6);
+    }
+    .calc .tool-actions {
+      display: flex;
+      align-items: center;
+      padding: var(--space-4) var(--space-6);
+    }
+    .calc .tool-actions .btn {
+      padding: 0 var(--space-4);
+    }
+    .calc .tool-actions [data-act='copy'] {
+      min-width: 150px;
+    }
+    .calc .tool-actions [data-act='share'] {
+      min-width: 130px;
+    }
+    .calc .share-url {
+      display: block;
+      margin-left: auto;
+      min-width: 0;
+      font-size: 12px;
+      color: var(--color-neutral-700);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .mlist-head {
+      padding: var(--space-4) 20px;
+    }
+    .mlist-items label {
+      padding: 0 20px;
+    }
+  }
+
+  @media print {
+    .calc-head,
+    .calc-fields,
+    .calc .tool-actions,
+    .mlist-btns,
+    .calc-status[data-tone='info'] {
+      display: none !important;
+    }
+    .calc .print-only {
+      display: block;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+    .calc .results {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .calc .result {
+      border-bottom: 0;
+      border-right: 1px solid #000;
+    }
+    .calc .result:last-child {
+      border-right: 0;
+    }
+    .calc .result dd {
+      font-size: 26px;
+      color: #000 !important;
+    }
+    .mlist {
+      border: 1px solid #000;
+      break-inside: avoid;
+    }
+    .mlist-head {
+      border-bottom: 2px solid #000;
+    }
+    .mlist-items li {
+      border-bottom: 1px dashed #000;
+    }
+    .mlist-items input {
+      appearance: none;
+      -webkit-appearance: none;
+      border: 1.5px solid #000;
+      width: 16px;
+      height: 16px;
+    }
+    .mlist-items li:has(input:checked) .name {
+      text-decoration: none;
+      color: #000;
+    }
+  }
+</style>

@@ -1,0 +1,101 @@
+---
+/**
+ * Page frame shared by the calculator pages: intro, tool, below-tool ad, article content,
+ * FAQ, related tools, sticky sidebar ad. JSON-LD: WebApplication + FAQPage (+ BreadcrumbList from BaseLayout).
+ */
+import BaseLayout from './BaseLayout.astro';
+import PageIntro from '../components/PageIntro.astro';
+import AdSlot from '../components/AdSlot.astro';
+import Faq from '../components/Faq.astro';
+import RelatedTools from '../components/RelatedTools.astro';
+import { SITE } from '../config/site';
+import { faqLd, webAppLd, type Crumb, type Faq as FaqItem } from '../lib/seo';
+
+interface Props {
+  title: string;
+  /** Shorter H1/app name when the <title> needs extra words. */
+  name?: string;
+  description: string;
+  lede: string;
+  path: string;
+  trade: string;
+  faqs: FaqItem[];
+}
+const { title, name = title, description, lede, path, trade, faqs } = Astro.props;
+const breadcrumbs: Crumb[] = [{ name: 'Home', href: '/' }, { name: trade }, { name, href: path }];
+const jsonLd = [webAppLd({ site: Astro.site!, path, name, description, brand: SITE.brand }), faqLd(faqs)];
+---
+
+<BaseLayout title={title} description={description} breadcrumbs={breadcrumbs} jsonLd={jsonLd}>
+  <PageIntro title={name} lede={lede} breadcrumbs={breadcrumbs} />
+  <div class="container with-sidebar">
+    <div class="main-col tool-page">
+      <slot name="tool" />
+      <AdSlot placement="belowTool" class="ad-gap" />
+      <slot />
+      <Faq items={faqs} />
+      <slot name="after-faq" />
+      <RelatedTools exclude={path} />
+    </div>
+    <aside>
+      <AdSlot placement="sidebar" />
+    </aside>
+  </div>
+</BaseLayout>
+
+<style is:global>
+  .tool-page {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .tool-page > .calc > .tool,
+  .tool-page > .tool {
+    margin-inline: calc(-1 * var(--page-margin));
+  }
+  @media (min-width: 768px) {
+    .tool-page > .calc > .tool,
+    .tool-page > .tool {
+      margin-inline: 0;
+    }
+  }
+  .tool-page .ad-gap {
+    margin-top: 40px;
+  }
+  .tool-page .h-sm {
+    font-size: 22px;
+  }
+  .tool-page .two-col .col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .tool-page .sources {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .tool-page .small {
+    font-size: 13px;
+  }
+  .tool-page .ink {
+    color: var(--color-text);
+  }
+  @media (min-width: 768px) {
+    .tool-page .h-sm {
+      font-size: 24px;
+    }
+    .tool-page .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--gutter);
+    }
+  }
+  @media print {
+    .tool-page > .section,
+    .tool-page > .next-step {
+      display: none !important;
+    }
+  }
+</style>

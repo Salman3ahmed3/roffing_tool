@@ -1,0 +1,172 @@
+---
+import ToolPageLayout from '../layouts/ToolPageLayout.astro';
+import CalcTool from '../components/tools/CalcTool.astro';
+import ToolField from '../components/tools/ToolField.astro';
+import ToolSeg from '../components/tools/ToolSeg.astro';
+import ToolSelect from '../components/tools/ToolSelect.astro';
+import CostCard from '../components/tools/CostCard.astro';
+import QuoteCta from '../components/tools/QuoteCta.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { SITE } from '../config/site';
+import { ROOFING_DEFAULTS as D } from '../lib/tools/roofing-tool';
+import { UNDERLAYMENT_OPTIONS } from '../lib/calc/roofing';
+import type { Faq } from '../lib/seo';
+
+const path = '/roofing-calculator/';
+const faqs: Faq[] = [
+  {
+    q: 'How many bundles of shingles are in a square?',
+    a: 'Most asphalt shingles are packed three bundles to a square, and a square covers 100 sq ft of roof. Some heavier designer shingles use four or five bundles per square, so check the coverage printed on the wrapper.',
+  },
+  {
+    q: 'How much waste should I add?',
+    a: 'A common rule of thumb is about 10% for a simple gable roof and about 15% for a hip roof or one with valleys, dormers and other cuts. Complex roofs can need more. Starter strip and ridge cap are usually ordered separately.',
+  },
+  {
+    q: 'Why does pitch change how many shingles I need?',
+    a: 'A sloped roof is larger than the floor area underneath it. The rafter multiplier converts the flat footprint into true roof area: a 6/12 roof is about 11.8% larger than its footprint and a 12/12 roof about 41.4% larger.',
+  },
+  {
+    q: 'When do I need two layers of underlayment?',
+    a: 'Under the International Residential Code, asphalt shingles on slopes from 2/12 up to (but not including) 4/12 need two layers of underlayment. Below 2/12, asphalt shingles are not permitted. The calculator doubles the roll count automatically in that range.',
+  },
+  {
+    q: 'How is drip edge counted?',
+    a: 'Drip edge runs along the eaves and the rakes (the sloped gable edges). Pieces are 10 ft long and adjacent pieces must overlap at least 2 inches, so each piece covers about 9 ft 10 in. On a hip roof every edge is an eave.',
+  },
+];
+---
+
+<ToolPageLayout
+  title="Roofing Calculator: Shingles, Squares & Underlayment"
+  name="Roofing Materials Calculator"
+  description="Free roofing calculator. Get roof squares, shingle bundles, underlayment rolls and drip edge from your roof size and pitch, with waste included."
+  lede="Squares, shingle bundles, underlayment and drip edge for a gable or hip roof, with waste included."
+  path={path}
+  trade="Roofing"
+  faqs={faqs}
+>
+  <Fragment slot="tool">
+    <CalcTool
+      spec="roofing"
+      label="Roofing materials calculator"
+      results={[
+        { key: 'squares', label: 'Roof squares' },
+        { key: 'bundles', label: 'Bundles' },
+        { key: 'underlayment', label: 'Underlayment' },
+        { key: 'drip', label: 'Drip edge' },
+      ]}
+      listNote="Quantities rounded up to whole packages. Starter strip, ridge cap, flashing and fasteners are not included. Check bundle coverage on your product’s wrapper."
+    >
+      <ToolSeg
+        name="by"
+        legend="Measure by"
+        value={D.by}
+        options={[{ value: 'footprint', label: 'Footprint' }, { value: 'area', label: 'Roof area' }]}
+        wide
+      />
+      <ToolField name="l" label="Length" hint="along the ridge" suffix="ft" suffixMet="m" value={D.l} showWhen="by=footprint" />
+      <ToolField name="w" label="Width" hint="gable end" suffix="ft" suffixMet="m" value={D.w} showWhen="by=footprint" />
+      <ToolField name="area" label="Roof area" hint="sloped" suffix="sq ft" suffixMet="m²" value={D.area} showWhen="by=area" initiallyHidden={D.by !== 'area'} />
+      <ToolField name="edge" label="Eaves + rakes" hint="optional" suffix="ft" suffixMet="m" value={D.edge} showWhen="by=area" initiallyHidden={D.by !== 'area'} />
+      <ToolField name="pitch" label="Pitch" suffix="/ 12" value={D.pitch} tag="From Roof Pitch" />
+      <ToolSeg name="shape" legend="Roof shape" value={D.shape} options={[{ value: 'gable', label: 'Gable' }, { value: 'hip', label: 'Hip' }]} />
+      <ToolSeg
+        name="waste"
+        legend="Waste"
+        hint="10% gable, 15% hip"
+        value={D.waste}
+        wide
+        options={['5', '10', '15', '20'].map((v) => ({ value: v, label: `${v}%` }))}
+      />
+      <ToolSelect
+        name="ul"
+        label="Underlayment"
+        value={D.ul}
+        wide
+        options={UNDERLAYMENT_OPTIONS.map((o) => ({ value: o.id, label: o.label }))}
+      />
+      <p slot="help" class="tool-help small muted">
+      Measure the footprint to the outside edge of the overhangs. Don’t know the pitch?{' '}
+      <a href="/roof-pitch-calculator/">Find it with the Roof Pitch Calculator</a>.
+      </p>
+    </CalcTool>
+    <CostCard />
+    <QuoteCta />
+  </Fragment>
+
+  <section class="section" aria-labelledby="how-h">
+    <h2 id="how-h">How the quantities are calculated</h2>
+    <div class="prose">
+      <p>
+        Footprint area is multiplied by the pitch’s rafter multiplier to get the true roof area, then by the waste
+        factor. One square covers 100 sq ft, and standard asphalt shingles come three bundles to a square. Every
+        quantity is rounded up to a whole package.
+      </p>
+    </div>
+    <div class="code-block">
+      roof area = length × width × √(1 + (pitch ÷ 12)²)<br />
+      order area = roof area × (1 + waste %)<br />
+      squares = order area ÷ 100<br />
+      bundles = ⌈squares × 3⌉<br />
+      underlayment rolls = ⌈order area × layers ÷ roll coverage⌉<br />
+      drip edge pieces = ⌈(eaves + rakes) ÷ 9.83 ft⌉
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="assume-h">
+    <h2 id="assume-h">Assumptions</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <caption class="sr-only">Assumptions used by the roofing materials calculator</caption>
+        <thead><tr><th scope="col">Item</th><th scope="col">Assumption</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Roof planes</th><td>Every plane has the same pitch. Mixed pitches: calculate each section separately.</td></tr>
+          <tr><th scope="row">Shingles</th><td>3 bundles per square (100 sq ft).</td></tr>
+          <tr><th scope="row">Waste</th><td>Your choice of 5–20%. Typical: 10% gable, 15% hip.</td></tr>
+          <tr><th scope="row">Underlayment</th><td>Nominal roll coverage: synthetic 10 squares, #15 felt 4 squares, #30 felt 2 squares. Two layers from 2/12 to under 4/12.</td></tr>
+          <tr><th scope="row">Drip edge</th><td>10 ft pieces lapped 2″. Gable: 2 eaves + 4 rakes. Hip: eaves on all four sides.</td></tr>
+          <tr><th scope="row">Not included</th><td>Starter strip, ridge cap, valley and step flashing, vents, nails.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <AdSlot placement="inContent" class="ad-gap" />
+
+  <section class="section" aria-labelledby="ex-h">
+    <h2 id="ex-h">Worked example</h2>
+    <p class="prose">A 40 × 30 ft gable roof (measured to the overhangs) at 6/12 with 10% waste and synthetic underlayment:</p>
+    <div class="code-block">
+      roof area = 1,200 × 1.118 = 1,341.6 sq ft<br />
+      order area = 1,341.6 × 1.10 = 1,475.8 sq ft<br />
+      squares = <b class="accent">14.8</b> · bundles = ⌈44.3⌉ = <b>45</b><br />
+      underlayment = ⌈1,475.8 ÷ 1,000⌉ = <b>2 rolls</b><br />
+      drip edge = 2 × 40 + 4 × 15 × 1.118 = 147.1 ft → <b>15 pieces</b>
+    </div>
+  </section>
+
+  <section slot="after-faq" class="section two-col" aria-labelledby="src-h">
+    <div class="col">
+      <h2 class="h-sm" id="src-h">Sources</h2>
+      <ol class="sources">
+        <li>International Code Council, International Residential Code, Sections R905.1.1 (underlayment), R905.2.2 (slope) and R905.2.8.5 (drip edge).</li>
+        <li>National Roofing Contractors Association, The NRCA Roofing Manual: Steep-slope Roof Systems.</li>
+        <li>Manufacturer installation instructions and package coverage for the product you buy.</li>
+      </ol>
+    </div>
+    <div class="col">
+      <h2 class="h-sm">Review</h2>
+      <p class="muted small">
+        <b class="ink">Last reviewed: {SITE.lastReviewed}</b> by {SITE.reviewer}, {SITE.reviewerCredential}.{' '}
+        <a href="/methodology/">Methodology</a>
+      </p>
+    </div>
+  </section>
+</ToolPageLayout>
+
+<style>
+  .tool-help {
+    margin-top: var(--space-3);
+  }
+</style>
