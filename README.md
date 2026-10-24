@@ -44,14 +44,14 @@ Create `src/content/guides/<slug>.mdx` with the frontmatter used by `how-to-meas
 - `src/lib/url-state/` — shareable URL ⇄ input state.
 - `src/components/tools/` — calculator UI blocks; behaviour in `src/scripts/`.
 - `src/components/AdSlot.astro` — fixed-size ad slots (no layout shift).
-- `src/config/site.ts` — brand, author/reviewer placeholders, feature flags (`showCostCard`, `showQuotesCta` are off).
+- `src/config/site.ts` — brand, author, owner, contact email, legal dates, feature flags (`showCostCard`, `showQuotesCta` are off).
 - `src/styles/tokens.css` — design tokens as CSS custom properties.
 
-## Placeholders to replace before launch
+## No placeholders, no unverified claims
 
-`[Author name]`, `[Reviewer name]`, `[Review date]` and the reviewer credential — all in `src/config/site.ts`.
+`npm run build` ends with `scripts/check-placeholders.mjs`, which fails the build if any built page or its JSON-LD contains a bracket placeholder such as `[Something]`.
 
-Legal pages contain bracketed placeholders (`[Effective date]`, `[Company legal name]`, `[Jurisdiction]`, hosting and consent details) and should be reviewed by a professional before launch.
+There is no expert reviewer yet, so the site makes no "verified" or "reviewed by" claims. Add reviewer details (and a `reviewedBy` in structured data) only after a real review has happened.
 
 ## Feature flags (`src/config/site.ts`)
 

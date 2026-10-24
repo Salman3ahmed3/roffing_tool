@@ -8,7 +8,6 @@ import ToolStep from '../components/tools/ToolStep.astro';
 import CostCard from '../components/tools/CostCard.astro';
 import QuoteCta from '../components/tools/QuoteCta.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { SITE } from '../config/site';
 import { RECOMMENDED_WASTE, ROOFING_DEFAULTS as D, WASTE_OPTIONS } from '../lib/tools/roofing-tool';
 import { UNDERLAYMENT_OPTIONS } from '../lib/calc/roofing';
 import type { Faq } from '../lib/seo';
@@ -176,9 +175,9 @@ const faqs: Faq[] = [
       </ol>
     </div>
     <div class="col">
-      <h2 class="h-sm">Review</h2>
+      <h2 class="h-sm">Testing</h2>
       <p class="muted small">
-        <b class="ink">Last reviewed: {SITE.lastReviewed}</b> by {SITE.reviewer}, {SITE.reviewerCredential}.{' '}
+        Formulas are shown on this page, based on the cited sources, and covered by automated tests.{' '}
         <a href="/methodology/">Methodology</a>
       </p>
     </div>

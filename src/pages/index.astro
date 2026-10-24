@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import TrustBadge from '../components/TrustBadge.astro';
 import PitchMini from '../components/tools/PitchMini.astro';
 import AdSlot from '../components/AdSlot.astro';
 import { SITE, TOOLS } from '../config/site';
@@ -33,7 +32,6 @@ const jsonLd = [
         Enter your measurements and get pitch, materials and quantities you can take to the supplier. Every formula is
         shown and sourced.
       </p>
-      <TrustBadge />
     </div>
     <div class="hero-tool">
       <PitchMini variant="home" id="home-pm" />
@@ -88,9 +86,13 @@ const jsonLd = [
           <p>Coverage and code limits come from published codes and product data, not guesses.</p>
         </div>
         <div>
-          <h3 class="how-k">03 · Tested and reviewed</h3>
-          <p class="big tnum">{SITE.lastReviewed}</p>
-          <p>Each formula has automated tests. Last reviewed by {SITE.reviewer}, {SITE.reviewerCredential}.</p>
+          <h3 class="how-k">03 · Tested</h3>
+          <ul>
+            <li>Reference values, e.g. 6/12 = 26.57°</li>
+            <li>Edge cases: flat roofs, zero run, exact multiples</li>
+            <li>Rounding, unit conversion and input checks</li>
+          </ul>
+          <p>Each formula has automated tests that run on every build. If a test fails, the site does not build.</p>
         </div>
       </div>
     </section>
@@ -135,9 +137,6 @@ const jsonLd = [
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
-  }
-  .hero-text > :global(.badge) {
-    align-self: flex-start;
   }
   .kicker {
     font-size: 12px;
@@ -303,11 +302,6 @@ const jsonLd = [
     background: var(--color-neutral-100);
     border: 0;
     white-space: normal;
-  }
-  .big {
-    font-size: 26px;
-    font-weight: 800;
-    color: var(--color-text);
   }
   .guide-card {
     display: flex;

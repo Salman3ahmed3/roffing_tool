@@ -6,7 +6,7 @@ import { SITE } from '../config/site';
 <ContentPage
   title="Methodology"
   seoTitle="Calculator Methodology: Formulas, Sources & Testing"
-  description={`How ${SITE.brand} calculators work: every formula, assumption and source, plus how the maths is tested and reviewed.`}
+  description={`How ${SITE.brand} calculators work: every formula, assumption and source, plus how the maths is tested.`}
   lede="Every calculator on this site uses published formulas, states its assumptions and is covered by automated tests. This page collects them in one place."
 >
   <h2>Principles</h2>
@@ -82,11 +82,7 @@ import { SITE } from '../config/site';
     rounding, unit conversion and input validation. The site does not build if a test fails.
   </p>
 
-  <h2>Review</h2>
-  <p>
-    Formulas and content were last reviewed on {SITE.lastReviewed} by {SITE.reviewer}, {SITE.reviewerCredential}.
-    Each tool page shows its own review date.
-  </p>
+  <p>Formulas are shown on this page, based on the cited sources, and covered by automated tests.</p>
 
   <h2>Sources</h2>
   <ol>

@@ -23,6 +23,7 @@ const { Content, headings } = await render(guide);
 const path = `/guides/${guide.id}/`;
 const toc = headings.filter((h) => h.depth === 2);
 const minutes = readingMinutes(guide.body ?? '');
+const iso = (dt: Date) => dt.toISOString().slice(0, 10);
 const fmtDate = (dt: Date) => dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const breadcrumbs: Crumb[] = [{ name: 'Home', href: '/' }, { name: 'Guides' }, { name: d.title, href: path }];
 const tool = TOOLS.find((t) => t.href === d.tool);
@@ -33,7 +34,6 @@ const jsonLd: unknown[] = [
     headline: d.title,
     description: d.description,
     author: d.author,
-    reviewer: d.reviewer,
     published: d.published,
     updated: d.updated,
     brand: SITE.brand,
@@ -59,9 +59,16 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
       <h1>{d.title}</h1>
       <p class="lede">{d.lede}</p>
       <p class="byline">
-        <span>By <b>{d.author}</b></span>
-        <span>Reviewed by <b>{d.reviewer}</b>, {SITE.reviewerCredential}</span>
-        <span class="muted">Updated <time datetime={d.updated.toISOString().slice(0, 10)}>{fmtDate(d.updated)}</time> · {minutes} min read</span>
+        <span>Written by <b>{d.author}</b></span>
+        <span class="muted">
+          Published <time datetime={iso(d.published)}>{fmtDate(d.published)}</time>
+          {iso(d.updated) !== iso(d.published) && (
+            <>
+              {' '}· Updated <time datetime={iso(d.updated)}>{fmtDate(d.updated)}</time>
+            </>
+          )}
+          {' '}· {minutes} min read
+        </span>
       </p>
 
       <nav class="toc toc-mobile" aria-labelledby="toc-m-h">
@@ -81,16 +88,12 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
 
       {d.faqs.length > 0 && <Faq items={d.faqs} title="Questions" />}
 
-      <section class="people" aria-label="Author and reviewer">
-        <div class="person">
-          <span class="avatar" aria-hidden="true"></span>
-          <div><span class="muted small">Written by</span><b>{d.author}</b><span class="small muted">{d.authorBio}</span></div>
-        </div>
+      <section class="people" aria-label="Author">
         <div class="person">
           <span class="avatar" aria-hidden="true"></span>
           <div>
-            <span class="muted small">Reviewed by</span><b>{d.reviewer}</b>
-            <span class="small muted">{d.reviewerBio} Reviewed {SITE.lastReviewed}.</span>
+            <span class="muted small">Written by</span><b>{d.author}</b>
+            <span class="small muted">{d.authorBio ?? `Builds and maintains the ${SITE.brand} calculators and guides.`}</span>
           </div>
         </div>
       </section>
@@ -307,9 +310,6 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
     }
     .article-body :global(h2) {
       font-size: 28px;
-    }
-    .people {
-      grid-template-columns: 1fr 1fr;
     }
     .lede {
       font-size: 19px;

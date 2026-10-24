@@ -68,7 +68,6 @@ export function articleLd(opts: {
   headline: string;
   description: string;
   author: string;
-  reviewer: string;
   published: Date;
   updated: Date;
   brand: string;

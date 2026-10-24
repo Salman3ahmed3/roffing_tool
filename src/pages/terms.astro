@@ -1,51 +1,53 @@
 ---
 import ContentPage from '../layouts/ContentPage.astro';
 import { SITE } from '../config/site';
+import { longDate } from '../lib/dates';
+
+const effective = longDate(SITE.legalEffective);
 ---
 
 <ContentPage
   title="Terms of use"
   seoTitle="Terms of Use"
-  description={`Terms for using ${SITE.brand} calculators and guides. Results are planning estimates; confirm with your supplier and local code.`}
-  lede="Effective [Effective date]. By using this website you agree to these terms."
+  description={`Terms for using ${SITE.brand} calculators and guides. Results are planning estimates; confirm with your supplier and local building code.`}
+  lede={`Effective ${effective}. By using ${SITE.brand} (${SITE.siteUrl}) you agree to these terms.`}
 >
-  <h2>Estimates only</h2>
+  <h2>Estimates for planning only</h2>
   <p>
-    The calculators and guides provide planning estimates for general information. They are not professional,
-    engineering or legal advice and are not a substitute for a site visit, a supplier’s take-off or the product
-    manufacturer’s instructions. Results depend on the measurements and assumptions you enter.
-  </p>
-  <p>
-    Building codes vary by location and change over time. Confirm requirements with your local building department
-    before you buy materials or start work.
+    The calculators and guides give estimates for planning only. We do not guarantee that any result is accurate,
+    complete or suitable for your project. Before you buy materials or start work, confirm quantities with your
+    supplier, check your local building code and, where needed, consult a qualified professional.
   </p>
 
-  <h2>No warranty</h2>
+  <h2>Use at your own risk</h2>
   <p>
-    The site is provided “as is”, without warranties of any kind. We work to keep every formula accurate and tested, but
-    we do not guarantee that results are complete, correct or suitable for your project.
-  </p>
-
-  <h2>Limitation of liability</h2>
-  <p>
-    To the extent permitted by law, [Company legal name] is not liable for any loss arising from use of the site,
-    including material shortfalls, over-ordering or project delays. [Have this clause reviewed for your jurisdiction.]
+    You use this website and its results at your own risk. To the extent the law allows, we are not liable for any
+    loss or damage arising from your use of the site, including material shortfalls, over-ordering or project delays.
   </p>
 
   <h2>Safety</h2>
   <p>
-    Working on roofs, ladders and structures is dangerous. Use appropriate fall protection and follow applicable safety
-    regulations. Do not rely on this site for safety decisions.
+    Working on roofs, ladders and structures is dangerous. Use appropriate fall protection and follow the safety rules
+    that apply where you live. Do not rely on this site for safety decisions.
   </p>
 
-  <h2>Content and links</h2>
+  <h2>Content</h2>
   <p>
-    Site content is owned by [Company legal name]. You may share links to any page. Links to third-party sites are
-    provided for convenience; we are not responsible for their content.
+    The content of this website is owned by the site operator, {SITE.owner}. You may use it for personal,
+    non-commercial purposes and share links to any page.
+  </p>
+
+  <h2>Third-party links and ads</h2>
+  <p>
+    The site shows ads and may link to other websites. We are not responsible for the content, products or policies of
+    third-party sites or advertisers.
   </p>
 
   <h2>Governing law</h2>
-  <p>These terms are governed by the laws of [Jurisdiction].</p>
+  <p>These terms are governed by the laws of {SITE.jurisdiction}.</p>
+
+  <h2>Changes</h2>
+  <p>If we change these terms, we will publish the new version on this page and update the effective date.</p>
 
   <h2>Contact</h2>
   <p><a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a></p>

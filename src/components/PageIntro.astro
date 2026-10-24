@@ -1,14 +1,12 @@
 ---
 import Breadcrumbs from './Breadcrumbs.astro';
-import TrustBadge from './TrustBadge.astro';
 import type { Crumb } from '../lib/seo';
 interface Props {
   title: string;
   lede: string;
   breadcrumbs: Crumb[];
-  badge?: boolean;
 }
-const { title, lede, breadcrumbs, badge = true } = Astro.props;
+const { title, lede, breadcrumbs } = Astro.props;
 ---
 
 <div class="container intro">
@@ -18,7 +16,6 @@ const { title, lede, breadcrumbs, badge = true } = Astro.props;
       <h1>{title}</h1>
       <p class="lede">{lede}</p>
     </div>
-    {badge && <TrustBadge />}
   </div>
 </div>
 
@@ -40,9 +37,6 @@ const { title, lede, breadcrumbs, badge = true } = Astro.props;
     flex-direction: column;
     gap: var(--space-2);
   }
-  .row > :global(.badge) {
-    align-self: flex-start;
-  }
   .lede {
     font-size: 15px;
     line-height: 1.45;
@@ -55,19 +49,7 @@ const { title, lede, breadcrumbs, badge = true } = Astro.props;
       padding-bottom: 28px;
       gap: var(--space-3);
     }
-    .row {
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: var(--gutter);
-    }
-    .row > :global(.badge) {
-      align-self: flex-end;
-    }
-    .row > :global(.badge) {
-    align-self: flex-start;
-  }
-  .lede {
+    .lede {
       font-size: 18px;
     }
   }

@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "vitest run && astro check && astro build",
+    "build": "vitest run && astro check && astro build && node scripts/check-placeholders.mjs",
+    "check:placeholders": "node scripts/check-placeholders.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",

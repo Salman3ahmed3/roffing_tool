@@ -5,7 +5,6 @@ import ToolField from '../components/tools/ToolField.astro';
 import ToolSeg from '../components/tools/ToolSeg.astro';
 import ToolStep from '../components/tools/ToolStep.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { SITE } from '../config/site';
 import { FENCE_DEFAULTS as D } from '../lib/tools/fence-tool';
 import type { Faq } from '../lib/seo';
 
@@ -148,9 +147,9 @@ const faqs: Faq[] = [
       </ol>
     </div>
     <div class="col">
-      <h2 class="h-sm">Review</h2>
+      <h2 class="h-sm">Testing</h2>
       <p class="muted small">
-        <b class="ink">Last reviewed: {SITE.lastReviewed}</b> by {SITE.reviewer}, {SITE.reviewerCredential}.{' '}
+        Formulas are shown on this page, based on the cited sources, and covered by automated tests.{' '}
         <a href="/methodology/">Methodology</a>
       </p>
     </div>

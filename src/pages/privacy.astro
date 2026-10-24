@@ -1,57 +1,98 @@
 ---
 import ContentPage from '../layouts/ContentPage.astro';
 import { SITE } from '../config/site';
-import { adsEnabled } from '../config/ads';
+import { longDate } from '../lib/dates';
+
+const effective = longDate(SITE.legalEffective);
+const mail = `mailto:${SITE.contactEmail}`;
 ---
 
 <ContentPage
   title="Privacy policy"
   seoTitle="Privacy Policy"
-  description={`How ${SITE.brand} handles data: calculations run in your browser and are not stored. Details on cookies, advertising and your choices.`}
-  lede="Effective [Effective date]. This policy explains what data this website collects and how it is used."
+  description={`How ${SITE.brand} handles data: calculations run in your browser and are not stored. Details on server logs, analytics, advertising cookies and your choices.`}
+  lede={`Effective ${effective}. This policy explains what data ${SITE.brand} (${SITE.siteUrl}) collects, why, and the choices you have.`}
 >
-  <h2>Calculations stay in your browser</h2>
+  <h2>Who we are</h2>
   <p>
-    The calculators run entirely in your web browser. The measurements you enter are not sent to our servers and are not
-    stored by us. To make results shareable, your inputs are written into the page address (the URL). Anyone you send
-    that link to can see those inputs.
+    {SITE.brand} is owned and operated by {SITE.owner}. You can reach us at
+    {' '}<a href={mail}>{SITE.contactEmail}</a>.
   </p>
 
-  <h2>Information collected automatically</h2>
+  <h2>Calculator inputs stay in your browser</h2>
   <p>
-    Like most websites, our hosting provider records standard server logs (such as IP address, browser type, pages
-    requested and time of request) for security and reliability. [Name the hosting provider and log retention period.]
+    The calculators run in your web browser. The measurements you enter are processed on your device and are not sent
+    to or stored on our server. When you use <b>Share link</b>, your inputs are written into the page address (URL)
+    only, so anyone you send the link to can see them.
   </p>
-  <p>[If you add analytics, name the provider, what it collects, and how to opt out.]</p>
+  <p>
+    If you tick items on a materials list, the ticks are saved in your own browser (local storage) so they are still
+    there when you come back. They never leave your device, and clearing your browser data removes them.
+  </p>
+
+  <h2>Server logs</h2>
+  <p>
+    Our website is hosted by {SITE.hosting}. Like most hosts, {SITE.hosting} keeps server logs for security and
+    reliability. These logs record your IP address, browser type, the pages requested and the time of each request.
+  </p>
+
+  <h2>Analytics</h2>
+  <p>
+    We use Google Analytics 4 to understand how visitors use the site, for example which pages are visited and how
+    people arrive. Google Analytics measures visits using cookies or similar technologies. You can read
+    {' '}<a href="https://policies.google.com/technologies/partner-sites" rel="noopener">how Google uses information from
+    sites that use its services</a>, and you can opt out with the
+    {' '}<a href="https://tools.google.com/dlpage/gaoptout" rel="noopener">Google Analytics opt-out browser add-on</a>.
+  </p>
 
   <h2>Advertising and cookies</h2>
+  <p>The site shows ads served by Google AdSense.</p>
+  <ul>
+    <li>
+      Third-party vendors, including Google, use cookies to serve ads based on a user’s prior visits to this website or
+      other websites.
+    </li>
+    <li>
+      Google’s use of advertising cookies enables it and its partners to serve ads to users based on their visits to
+      this site and/or other sites on the internet.
+    </li>
+    <li>
+      You can opt out of personalised advertising in <a href="https://myadcenter.google.com" rel="noopener">My Ad
+      Center</a>, and opt out of some third-party vendors’ use of cookies for personalised advertising at
+      {' '}<a href="https://www.aboutads.info" rel="noopener">www.aboutads.info</a>.
+    </li>
+  </ul>
+
+  <h2>Consent (EEA, UK and Switzerland)</h2>
   <p>
-    {adsEnabled ? 'This site shows' : 'This site may show'} ads served by Google AdSense. Third-party vendors, including
-    Google, use cookies to serve ads based on a user’s prior visits to this website or other websites. Google’s use of
-    advertising cookies enables it and its partners to serve ads based on visits to this and other sites.
-  </p>
-  <p>
-    You can opt out of personalised advertising in <a href="https://adssettings.google.com" rel="noopener">Google’s Ads
-    Settings</a>, and learn more at <a href="https://www.aboutads.info" rel="noopener">aboutads.info</a>. Visitors in the
-    EEA, UK and Switzerland are asked for consent before personalised ads are shown. [Name your consent management
-    platform.]
+    Visitors in the European Economic Area, the United Kingdom and Switzerland see Google’s consent message (Google
+    AdSense Privacy &amp; messaging, a Google-certified consent message) before personalised ads or related cookies are
+    used. You can change your choice at any time with the <b>Privacy and cookie settings</b> link in the footer of every
+    page.
   </p>
 
-  <h2>Contacting us</h2>
+  <h2>If you email us</h2>
   <p>
-    If you email us, we use your address and message only to reply. [State retention period.] Contact:
-    <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.
+    If you email us, we use your email address and message only to reply to you. We do not add you to a mailing list or
+    share your address.
   </p>
+
+  <h2>Children</h2>
+  <p>This website is not directed at children under 13, and we do not knowingly collect personal data from them.</p>
 
   <h2>Your rights</h2>
   <p>
-    Depending on where you live (for example under the GDPR, UK GDPR or California law), you may have the right to access,
-    correct or delete personal data we hold about you. [Add the rights and request process that apply to your
-    business.]
+    Depending on where you live, you may have the right to ask what personal data we hold about you, to have it
+    corrected or deleted, and to object to its use. To make a request, email
+    {' '}<a href={mail}>{SITE.contactEmail}</a>. For data held by Google (analytics and advertising), you can also use your
+    Google account settings and the links above.
   </p>
 
-  <h2>Changes</h2>
-  <p>We will post any changes on this page and update the effective date above.</p>
+  <h2>Changes to this policy</h2>
+  <p>
+    If we change this policy, we will publish the new version on this page and update the effective date at the top.
+  </p>
 
-  <p><i>[Have this policy reviewed by a qualified professional before launch.]</i></p>
+  <h2>Contact</h2>
+  <p><a href={mail}>{SITE.contactEmail}</a></p>
 </ContentPage>
