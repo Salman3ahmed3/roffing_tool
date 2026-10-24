@@ -1,0 +1,46 @@
+---
+/**
+ * One numbered group of inputs in a materials calculator: accent step label, one-line hint and a
+ * 2-column field grid (1 column on phones). Step 1 can carry the Units toggle in its header.
+ */
+interface Props {
+  /** Tool id, used to build unique element ids. */
+  tool: string;
+  n: number;
+  title: string;
+  hint: string;
+  /** Initial unit system; renders the Units toggle in the step header when set. */
+  units?: string;
+}
+const { tool, n, title, hint, units } = Astro.props;
+const id = `${tool}-step-${n}`;
+---
+
+<div class="calc-step" role="group" aria-labelledby={`${id}-t`} aria-describedby={`${id}-h`}>
+  <div class="step-head">
+    <div class="step-intro">
+      <p class="step-label" id={`${id}-t`}>Step {n} · {title}</p>
+      <p class="step-hint" id={`${id}-h`}>{hint}</p>
+    </div>
+    {
+      units && (
+        <div class="units-row">
+          <span class="field-label" id={`${tool}-units`}>Units</span>
+          <div class="segr units" role="radiogroup" aria-labelledby={`${tool}-units`} style="--n:2">
+            <label class="segr-opt">
+              <input type="radio" name="u" value="imp" checked={units === 'imp'} />
+              <span>ft / in</span>
+            </label>
+            <label class="segr-opt">
+              <input type="radio" name="u" value="met" checked={units === 'met'} />
+              <span>Metric</span>
+            </label>
+          </div>
+        </div>
+      )
+    }
+  </div>
+  <div class="step-grid">
+    <slot />
+  </div>
+</div>

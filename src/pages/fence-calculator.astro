@@ -3,6 +3,7 @@ import ToolPageLayout from '../layouts/ToolPageLayout.astro';
 import CalcTool from '../components/tools/CalcTool.astro';
 import ToolField from '../components/tools/ToolField.astro';
 import ToolSeg from '../components/tools/ToolSeg.astro';
+import ToolStep from '../components/tools/ToolStep.astro';
 import AdSlot from '../components/AdSlot.astro';
 import { SITE } from '../config/site';
 import { FENCE_DEFAULTS as D } from '../lib/tools/fence-tool';
@@ -54,34 +55,39 @@ const faqs: Faq[] = [
       ]}
       listNote="Quantities rounded up to whole pieces and bags. Gates, post caps, brackets and fasteners are not included."
     >
-      <ToolField name="len" label="Fence length" hint="total run" suffix="ft" suffixMet="m" value={D.len} />
-      <ToolField name="space" label="Post spacing" hint="on center" suffix="ft" suffixMet="m" value={D.space} />
-      <ToolField name="corners" label="Corners" suffix="corners" value={D.corners} />
-      <ToolSeg
-        name="rails"
-        legend="Rails per section"
-        value={D.rails}
-        options={[{ value: '2', label: '2' }, { value: '3', label: '3' }, { value: '4', label: '4' }]}
-      />
-      <ToolField name="pw" label="Picket width" suffix="in" suffixMet="cm" value={D.pw} />
-      <ToolField name="gap" label="Gap" hint="0 for privacy" suffix="in" suffixMet="cm" value={D.gap} />
-      <ToolSeg name="post" legend="Post size" value={D.post} options={[{ value: '4x4', label: '4×4' }, { value: '6x6', label: '6×6' }]} wide />
-      <ToolField name="dia" label="Hole diameter" suffix="in" suffixMet="cm" value={D.dia} />
-      <ToolField name="depth" label="Hole depth" suffix="in" suffixMet="cm" value={D.depth} />
-      <ToolField name="gravel" label="Gravel base" suffix="in" suffixMet="cm" value={D.gravel} />
-      <ToolSeg
-        name="bag"
-        legend="Concrete bag"
-        value={D.bag}
-        options={[
-          { value: '50', label: '50 lb', met: '20', labelMet: '20 kg' },
-          { value: '60', label: '60 lb', met: '25', labelMet: '25 kg' },
-          { value: '80', label: '80 lb', met: '30', labelMet: '30 kg' },
-        ]}
-      />
+      <ToolStep tool="fence" n={1} title="Fence layout" hint="Measure the total run, leaving out gate openings." units={D.u}>
+        <ToolField name="len" label="Fence length" hint="total run" suffix="ft" suffixMet="m" value={D.len} />
+        <ToolField name="space" label="Post spacing" hint="on center" suffix="ft" suffixMet="m" value={D.space} />
+        <ToolField name="corners" label="Corners" suffix="corners" value={D.corners} />
+        <ToolSeg
+          name="rails"
+          legend="Rails per section"
+          value={D.rails}
+          options={[{ value: '2', label: '2' }, { value: '3', label: '3' }, { value: '4', label: '4' }]}
+        />
+      </ToolStep>
+      <ToolStep tool="fence" n={2} title="Pickets" hint="Pickets are counted across the full fence length.">
+        <ToolField name="pw" label="Picket width" suffix="in" suffixMet="cm" value={D.pw} />
+        <ToolField name="gap" label="Gap" hint="0 for privacy" suffix="in" suffixMet="cm" value={D.gap} />
+      </ToolStep>
+      <ToolStep tool="fence" n={3} title="Posts & concrete" hint="Concrete fills each hole above the gravel, around the post.">
+        <ToolSeg name="post" legend="Post size" value={D.post} options={[{ value: '4x4', label: '4×4' }, { value: '6x6', label: '6×6' }]} wide />
+        <ToolField name="dia" label="Hole diameter" suffix="in" suffixMet="cm" value={D.dia} />
+        <ToolField name="depth" label="Hole depth" suffix="in" suffixMet="cm" value={D.depth} />
+        <ToolField name="gravel" label="Gravel base" suffix="in" suffixMet="cm" value={D.gravel} />
+        <ToolSeg
+          name="bag"
+          legend="Concrete bag"
+          value={D.bag}
+          options={[
+            { value: '50', label: '50 lb', met: '20', labelMet: '20 kg' },
+            { value: '60', label: '60 lb', met: '25', labelMet: '25 kg' },
+            { value: '80', label: '80 lb', met: '30', labelMet: '30 kg' },
+          ]}
+        />
+      </ToolStep>
       <p slot="help" class="tool-help small muted">
-        Rails: 2 per section for fences up to 4 ft tall, 3 up to 6 ft, 4 for taller fences. Measure the run without gate
-        openings.
+        Rails: 2 per section for fences up to 4 ft tall, 3 up to 6 ft, 4 for taller fences.
       </p>
     </CalcTool>
   </Fragment>

@@ -26,7 +26,10 @@ export const ROOFING_DEFAULTS: ToolState = {
   ul: 'synthetic10',
 };
 
-const WASTE_OPTIONS = ['5', '10', '15', '20'];
+export const WASTE_OPTIONS = ['5', '10', '15', '20'];
+
+/** Waste option tagged "Recommended" for each roof shape (a visual hint; it never changes the selection). */
+export const RECOMMENDED_WASTE: Record<RoofShape, string> = { gable: '10', hip: '15' };
 
 export function evaluateRoofing(s: ToolState): ToolView {
   const errors: Record<string, string> = {};

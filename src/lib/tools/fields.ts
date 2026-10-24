@@ -49,3 +49,14 @@ export function readNum(raw: string | undefined, key: string, rule: NumRule, err
 export function allBlank(s: Record<string, string>, keys: string[]): boolean {
   return keys.every((k) => (s[k] ?? '').trim() === '');
 }
+
+/**
+ * Evaluates a "key=value" condition against the tool state, e.g. "by=footprint" or "shape=hip".
+ * Used for conditional fields and hints; an empty condition always matches.
+ */
+export function whenMatches(expr: string | undefined, s: Record<string, string>): boolean {
+  if (!expr) return true;
+  const i = expr.indexOf('=');
+  if (i < 1) return true;
+  return s[expr.slice(0, i)] === expr.slice(i + 1);
+}

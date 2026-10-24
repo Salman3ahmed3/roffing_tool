@@ -4,11 +4,12 @@ import CalcTool from '../components/tools/CalcTool.astro';
 import ToolField from '../components/tools/ToolField.astro';
 import ToolSeg from '../components/tools/ToolSeg.astro';
 import ToolSelect from '../components/tools/ToolSelect.astro';
+import ToolStep from '../components/tools/ToolStep.astro';
 import CostCard from '../components/tools/CostCard.astro';
 import QuoteCta from '../components/tools/QuoteCta.astro';
 import AdSlot from '../components/AdSlot.astro';
 import { SITE } from '../config/site';
-import { ROOFING_DEFAULTS as D } from '../lib/tools/roofing-tool';
+import { RECOMMENDED_WASTE, ROOFING_DEFAULTS as D, WASTE_OPTIONS } from '../lib/tools/roofing-tool';
 import { UNDERLAYMENT_OPTIONS } from '../lib/calc/roofing';
 import type { Faq } from '../lib/seo';
 
@@ -58,38 +59,57 @@ const faqs: Faq[] = [
       ]}
       listNote="Quantities rounded up to whole packages. Starter strip, ridge cap, flashing and fasteners are not included. Check bundle coverage on your product’s wrapper."
     >
-      <ToolSeg
-        name="by"
-        legend="Measure by"
-        value={D.by}
-        options={[{ value: 'footprint', label: 'Footprint' }, { value: 'area', label: 'Roof area' }]}
-        wide
-      />
-      <ToolField name="l" label="Length" hint="along the ridge" suffix="ft" suffixMet="m" value={D.l} showWhen="by=footprint" />
-      <ToolField name="w" label="Width" hint="gable end" suffix="ft" suffixMet="m" value={D.w} showWhen="by=footprint" />
-      <ToolField name="area" label="Roof area" hint="sloped" suffix="sq ft" suffixMet="m²" value={D.area} showWhen="by=area" initiallyHidden={D.by !== 'area'} />
-      <ToolField name="edge" label="Eaves + rakes" hint="optional" suffix="ft" suffixMet="m" value={D.edge} showWhen="by=area" initiallyHidden={D.by !== 'area'} />
-      <ToolField name="pitch" label="Pitch" suffix="/ 12" value={D.pitch} tag="From Roof Pitch" />
-      <ToolSeg name="shape" legend="Roof shape" value={D.shape} options={[{ value: 'gable', label: 'Gable' }, { value: 'hip', label: 'Hip' }]} />
-      <ToolSeg
-        name="waste"
-        legend="Waste"
-        hint="10% gable, 15% hip"
-        value={D.waste}
-        wide
-        options={['5', '10', '15', '20'].map((v) => ({ value: v, label: `${v}%` }))}
-      />
-      <ToolSelect
-        name="ul"
-        label="Underlayment"
-        value={D.ul}
-        wide
-        options={UNDERLAYMENT_OPTIONS.map((o) => ({ value: o.id, label: o.label }))}
-      />
-      <p slot="help" class="tool-help small muted">
-      Measure the footprint to the outside edge of the overhangs. Don’t know the pitch?{' '}
-      <a href="/roof-pitch-calculator/">Find it with the Roof Pitch Calculator</a>.
-      </p>
+      <ToolStep tool="roofing" n={1} title="Roof size" hint="Enter the footprint, or a roof area you already know." units={D.u}>
+        <ToolSeg
+          name="by"
+          legend="Measure by"
+          value={D.by}
+          options={[{ value: 'footprint', label: 'Footprint' }, { value: 'area', label: 'Roof area' }]}
+          wide
+        />
+        <ToolField name="l" label="Length" hint="along the ridge" suffix="ft" suffixMet="m" value={D.l} showWhen="by=footprint" initiallyHidden={D.by !== 'footprint'} />
+        <ToolField name="w" label="Width" hint="gable end" suffix="ft" suffixMet="m" value={D.w} showWhen="by=footprint" initiallyHidden={D.by !== 'footprint'} />
+        <p class="step-note wide" data-show-when="by=footprint" hidden={D.by !== 'footprint'}>
+          Measure to the edge of the overhangs, not the walls.
+        </p>
+        <ToolField name="area" label="Roof area" hint="sloped" suffix="sq ft" suffixMet="m²" value={D.area} showWhen="by=area" initiallyHidden={D.by !== 'area'} />
+        <ToolField name="edge" label="Eaves + rakes" hint="optional" suffix="ft" suffixMet="m" value={D.edge} showWhen="by=area" initiallyHidden={D.by !== 'area'} />
+      </ToolStep>
+      <ToolStep tool="roofing" n={2} title="Roof details" hint="Used for roof area, underlayment layers and drip edge.">
+        <ToolField
+          name="pitch"
+          label="Pitch"
+          hint="rise per 12"
+          suffix="/ 12"
+          value={D.pitch}
+          tag="From Roof Pitch"
+          link={{ href: '/roof-pitch-calculator/', text: 'Don’t know your pitch? Use the Roof Pitch Calculator →' }}
+        />
+        <ToolSeg name="shape" legend="Roof shape" value={D.shape} options={[{ value: 'gable', label: 'Gable' }, { value: 'hip', label: 'Hip' }]} />
+      </ToolStep>
+      <ToolStep tool="roofing" n={3} title="Materials" hint="Waste allowance and underlayment roll size.">
+        <ToolSeg
+          name="waste"
+          legend="Waste"
+          hint="added to roof area"
+          value={D.waste}
+          state={D}
+          options={WASTE_OPTIONS.map((v) => ({
+            value: v,
+            label: `${v}%`,
+            rec: Object.entries(RECOMMENDED_WASTE)
+              .filter(([, w]) => w === v)
+              .map(([shape]) => `shape=${shape}`)[0],
+          }))}
+        />
+        <ToolSelect
+          name="ul"
+          label="Underlayment"
+          hint="roll size"
+          value={D.ul}
+          options={UNDERLAYMENT_OPTIONS.map((o) => ({ value: o.id, label: o.label }))}
+        />
+      </ToolStep>
     </CalcTool>
     <CostCard />
     <QuoteCta />

@@ -3,6 +3,7 @@ import ToolPageLayout from '../layouts/ToolPageLayout.astro';
 import CalcTool from '../components/tools/CalcTool.astro';
 import ToolField from '../components/tools/ToolField.astro';
 import ToolSeg from '../components/tools/ToolSeg.astro';
+import ToolStep from '../components/tools/ToolStep.astro';
 import AdSlot from '../components/AdSlot.astro';
 import { SITE } from '../config/site';
 import { DECK_DEFAULTS as D } from '../lib/tools/deck-tool';
@@ -54,28 +55,29 @@ const faqs: Faq[] = [
       ]}
       listNote="Quantities rounded up to whole boards. Beams, posts, footings, ledger hardware, joist hangers and railings are not included."
     >
-      <ToolField name="len" label="Length" hint="along house" suffix="ft" suffixMet="m" value={D.len} />
-      <ToolField name="dep" label="Depth" hint="from house" suffix="ft" suffixMet="m" value={D.dep} />
-      <ToolField name="bw" label="Board width" hint="actual" suffix="in" suffixMet="mm" value={D.bw} />
-      <ToolField name="gap" label="Gap" suffix="in" suffixMet="mm" value={D.gap} />
-      <ToolField name="blen" label="Board length" suffix="ft" suffixMet="m" value={D.blen} />
-      <ToolSeg
-        name="js"
-        legend="Joist spacing"
-        value={D.js}
-        options={[
-          { value: '12', label: '12″', met: '300', labelMet: '300 mm' },
-          { value: '16', label: '16″', met: '400', labelMet: '400 mm' },
-          { value: '24', label: '24″', met: '600', labelMet: '600 mm' },
-        ]}
-      />
-      <ToolSeg
-        name="waste"
-        legend="Waste"
-        value={D.waste}
-        wide
-        options={['0', '5', '10', '15'].map((v) => ({ value: v, label: `${v}%` }))}
-      />
+      <ToolStep tool="deck" n={1} title="Deck size" hint="Length runs along the house; depth runs out from it." units={D.u}>
+        <ToolField name="len" label="Length" hint="along house" suffix="ft" suffixMet="m" value={D.len} />
+        <ToolField name="dep" label="Depth" hint="from house" suffix="ft" suffixMet="m" value={D.dep} />
+      </ToolStep>
+      <ToolStep tool="deck" n={2} title="Boards" hint="Boards run along the length; waste covers offcuts.">
+        <ToolField name="bw" label="Board width" hint="actual" suffix="in" suffixMet="mm" value={D.bw} />
+        <ToolField name="gap" label="Gap" suffix="in" suffixMet="mm" value={D.gap} />
+        <ToolField name="blen" label="Board length" suffix="ft" suffixMet="m" value={D.blen} />
+        <ToolSeg name="waste" legend="Waste" value={D.waste} options={['0', '5', '10', '15'].map((v) => ({ value: v, label: `${v}%` }))} />
+      </ToolStep>
+      <ToolStep tool="deck" n={3} title="Framing" hint="Joists run out from the house, spaced along the length with one at each end.">
+        <ToolSeg
+          name="js"
+          legend="Joist spacing"
+          value={D.js}
+          wide
+          options={[
+            { value: '12', label: '12″', met: '300', labelMet: '300 mm' },
+            { value: '16', label: '16″', met: '400', labelMet: '400 mm' },
+            { value: '24', label: '24″', met: '600', labelMet: '600 mm' },
+          ]}
+        />
+      </ToolStep>
       <p slot="help" class="tool-help small muted">
         Boards run along the length, joists run across the depth. A nominal 6″ board is 5½″ wide; a 5/4×6 is about 5½″.
       </p>

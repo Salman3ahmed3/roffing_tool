@@ -8,6 +8,7 @@ import { toolReport } from '../lib/report';
 import { SITE } from '../config/site';
 import { copyText, flashLabel, shareLink } from './clipboard';
 import { initDownloadMenu, setActionStatus } from './download-menu';
+import { whenMatches } from '../lib/tools/fields';
 
 type Control = HTMLInputElement | HTMLSelectElement;
 
@@ -58,11 +59,8 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
     view = spec.evaluate(state);
     root.dataset.unit = state.u;
 
-    // Conditional fields
-    for (const el of $$('[data-show-when]')) {
-      const [k, v] = (el.dataset.showWhen ?? '').split('=');
-      if (k) el.hidden = state[k] !== v;
-    }
+    // Conditional fields and hints ("Recommended" tags)
+    for (const el of $$('[data-show-when]')) el.hidden = !whenMatches(el.dataset.showWhen, state);
     // Errors
     for (const f of $$('[data-field]')) {
       const msg = view.errors[f.dataset.field ?? ''];
@@ -79,10 +77,9 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
     }
     for (const sub of $$('[data-sub]')) sub.textContent = view.results?.[sub.dataset.sub ?? '']?.sub ?? '';
     const status = $('[data-status]');
-    if (status) {
-      status.textContent = view.status.text;
-      status.dataset.tone = view.status.tone;
-    }
+    if (status) status.textContent = view.status.text;
+    const statusBox = $('[data-status-box]') ?? status;
+    if (statusBox) statusBox.dataset.tone = view.status.tone;
     const summary = $('[data-summary]');
     if (summary) summary.textContent = view.summary;
 

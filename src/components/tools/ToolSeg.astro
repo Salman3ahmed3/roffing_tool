@@ -1,10 +1,18 @@
 ---
-/** Segmented control built from real radio buttons. Options may carry a metric value/label. */
+/**
+ * Segmented control built from real radio buttons, so arrow keys move the selection natively.
+ * Options may carry a metric value/label, and a "Recommended" tag shown when a condition on the
+ * tool state matches (e.g. "shape=hip"). The tag is a hint only; it never changes the selection.
+ */
+import { whenMatches } from '../../lib/tools/fields';
+
 interface Opt {
   value: string;
   label: string;
   met?: string;
   labelMet?: string;
+  /** Show a "Recommended" tag on this option while this condition holds, e.g. "shape=gable". */
+  rec?: string;
 }
 interface Props {
   name: string;
@@ -16,18 +24,26 @@ interface Props {
   showWhen?: string;
   /** Server-side initial visibility for showWhen fields (avoids layout shift). */
   initiallyHidden?: boolean;
+  /** Initial tool state, used to render the right "Recommended" tag before JS runs. */
+  state?: Record<string, string>;
 }
-const { name, legend, hint, options, value, wide = false, showWhen, initiallyHidden = false } = Astro.props;
+const { name, legend, hint, options, value, wide = false, showWhen, initiallyHidden = false, state = {} } = Astro.props;
+const hasRec = options.some((o) => o.rec);
 ---
 
 <fieldset class:list={['field', 'cell', { wide }]} data-field={name} data-show-when={showWhen} hidden={initiallyHidden}>
   <legend class="field-label">{legend}{hint && <span class="hint"> · {hint}</span>}</legend>
-  <div class="segr" style={`--n:${options.length}`}>
+  <div class:list={['segr', { 'has-rec': hasRec }]} style={`--n:${options.length}`}>
     {
       options.map((o) => (
         <label class="segr-opt">
           <input type="radio" name={name} value={o.value} checked={o.value === value} data-imp={o.value} data-met={o.met ?? o.value} />
           <span data-imp-label={o.label} data-met-label={o.labelMet ?? o.label}>{o.label}</span>
+          {o.rec && (
+            <span class="seg-rec" data-show-when={o.rec} hidden={!whenMatches(o.rec, state)}>
+              <span class="sr-only">, </span>Recommended
+            </span>
+          )}
         </label>
       ))
     }
