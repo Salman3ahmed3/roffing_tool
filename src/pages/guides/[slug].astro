@@ -123,6 +123,12 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
   </div>
 </BaseLayout>
 
+<script>
+  import { initTocSpy } from '../../scripts/toc-spy';
+  const nav = document.querySelector<HTMLElement>('.toc-desktop');
+  if (nav) initTocSpy(nav);
+</script>
+
 <style>
   .guide {
     display: grid;
@@ -186,6 +192,21 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
     color: var(--color-accent);
     border-left-color: var(--color-accent);
   }
+  /* Scrollspy: the section being read. Same colours as hover, plus semibold. */
+  .toc a[aria-current='location'] {
+    color: var(--color-accent);
+    border-left-color: var(--color-accent);
+    font-weight: var(--fw-semibold);
+  }
+  /* Headings the TOC links to stop a little below the top edge (and any sticky header). */
+  .guide :global(h2[id]) {
+    scroll-margin-top: var(--space-6);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html:has(.toc-desktop)) {
+      scroll-behavior: smooth;
+    }
+  }
   .lede {
     font-size: 17px;
     line-height: 1.55;
@@ -208,7 +229,6 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
     font-size: 24px;
     color: var(--color-text);
     margin: var(--space-8) 0 var(--space-3);
-    scroll-margin-top: var(--space-4);
   }
   .article-body :global(p),
   .article-body :global(ul),
@@ -310,6 +330,13 @@ if (d.faqs.length) jsonLd.push(faqLd(d.faqs));
       top: var(--space-6);
       align-self: start;
       padding-top: 48px;
+      /* A long list scrolls on its own; the script keeps the active item in view. The side
+         padding stops focus outlines being clipped. */
+      max-height: calc(100vh - var(--space-6) * 2);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding-inline: 4px;
+      margin-inline: -4px;
     }
     .toc-desktop ol {
       padding: 0;
