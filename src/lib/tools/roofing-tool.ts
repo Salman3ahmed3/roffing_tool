@@ -143,9 +143,45 @@ export function convertRoofingUnits(s: ToolState, to: 'imp' | 'met'): ToolState 
   };
 }
 
+export function describeRoofingInputs(s: ToolState): [string, string][] {
+  const met = s.u === 'met';
+  const L = met ? 'm' : 'ft';
+  const A = met ? 'm²' : 'sq ft';
+  const ul = UNDERLAYMENT_OPTIONS.find((o) => o.id === s.ul) ?? UNDERLAYMENT_OPTIONS[0];
+  const rows: [string, string][] = [
+    ['Units', met ? 'Metric' : 'Feet / inches'],
+    ['Measure by', s.by === 'area' ? 'Roof area' : 'Footprint'],
+  ];
+  if (s.by === 'area') {
+    rows.push(['Roof area', `${s.area} ${A}`], ['Eaves + rakes', s.edge ? `${s.edge} ${L}` : 'Not entered']);
+  } else {
+    rows.push(['Length (along the ridge)', `${s.l} ${L}`], ['Width (gable end)', `${s.w} ${L}`]);
+  }
+  rows.push(
+    ['Pitch', `${s.pitch}/12`],
+    ['Roof shape', s.shape === 'hip' ? 'Hip' : 'Gable'],
+    ['Waste', `${s.waste}%`],
+    ['Underlayment', ul.label],
+  );
+  return rows;
+}
+
 export const roofingSpec: ToolSpec = {
   id: 'roofing',
   title: 'Roofing materials',
+  toolName: 'Roofing Materials Calculator',
+  slug: 'roofing',
+  formula: [
+    'roof area = length × width × √(1 + (pitch ÷ 12)²)',
+    'order area = roof area × (1 + waste %)',
+    'squares = order area ÷ 100',
+    'bundles = ⌈squares × 3⌉',
+    'underlayment rolls = ⌈order area × layers ÷ roll coverage⌉',
+    'drip edge pieces = ⌈(eaves + rakes) ÷ 9.83 ft⌉',
+  ],
+  resultLabels: { squares: 'Roof squares', bundles: 'Bundles', underlayment: 'Underlayment', drip: 'Drip edge' },
+  describeInputs: describeRoofingInputs,
+  fileKey: (v) => (v.results ? `${v.results.squares.value}-squares` : 'results'),
   defaults: ROOFING_DEFAULTS,
   evaluate: evaluateRoofing,
   convertUnits: convertRoofingUnits,

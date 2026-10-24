@@ -62,6 +62,7 @@ export const TOOLS: NavTool[] = [
 ];
 
 export const COMPANY_LINKS = [
+  { name: 'Home', href: '/' },
   { name: 'About', href: '/about/' },
   { name: 'Contact', href: '/contact/' },
   { name: 'Privacy', href: '/privacy/' },

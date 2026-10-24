@@ -4,7 +4,10 @@
  */
 import type { ToolSpec, ToolState, ToolView, UnitSystem } from '../lib/tools/types';
 import { buildToolQuery, parseToolParams } from '../lib/url-state/tool';
+import { toolReport } from '../lib/report';
+import { SITE } from '../config/site';
 import { copyText, flashLabel, shareLink } from './clipboard';
+import { initDownloadMenu, setActionStatus } from './download-menu';
 
 type Control = HTMLInputElement | HTMLSelectElement;
 
@@ -41,6 +44,7 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
   const readControl = (c: Control) =>
     c instanceof HTMLInputElement && c.type === 'number' && c.validity.badInput ? 'invalid' : c.value;
 
+  let dlMenu: ReturnType<typeof initDownloadMenu> = null;
   let liveTimer = 0;
   let urlTimer = 0;
   let view: ToolView = spec.evaluate(state);
@@ -126,8 +130,9 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
       email.tabIndex = ok ? 0 : -1;
     }
     const url = shareUrl();
-    const su = $('[data-share-url]');
-    if (su) su.textContent = url.replace(/^https?:\/\//, '');
+    // The share link is only shown after "Share link" is used; a change of input makes it stale.
+    if (writeUrl) setActionStatus(root, '');
+    if (!ok) dlMenu?.close();
     const pu = $('[data-print-url]');
     if (pu) pu.textContent = url;
 
@@ -199,13 +204,39 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
   });
   $('[data-act="share"]')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget as HTMLButtonElement;
-    const r = await shareLink({ title: `${spec.title} calculation`, text: view.listMeta, url: shareUrl() });
-    if (r === 'copied') flashLabel(btn, 'Link copied ✓');
-    else if (r === 'failed') flashLabel(btn, 'Copy failed');
+    const url = shareUrl();
+    const r = await shareLink({ title: `${spec.title} calculation`, text: view.listMeta, url });
+    if (r === 'copied') {
+      flashLabel(btn, 'Link copied ✓');
+      setActionStatus(root, 'Link copied:', url);
+    } else if (r === 'shared') setActionStatus(root, 'Link shared:', url);
+    else if (r === 'failed') setActionStatus(root, 'Copy this link:', url);
   });
+  // "Print list" in the materials list header.
   for (const b of $$('[data-act="print"]')) b.addEventListener('click', () => window.print());
   $('[data-act-email]')?.addEventListener('click', (e) => {
     if (!view.results) e.preventDefault();
+  });
+
+  dlMenu = initDownloadMenu(root, {
+    onPdf: async () => {
+      const report = toolReport(spec, state, view, {
+        brand: SITE.brand,
+        date: new Date(),
+        siteUrl: (import.meta.env.SITE ?? location.origin).replace(/\/$/, ''),
+        shareUrl: shareUrl(),
+      });
+      if (!report) return;
+      setActionStatus(root, 'Preparing PDF…');
+      try {
+        const { downloadReportPdf } = await import('./pdf-download');
+        const name = await downloadReportPdf(report);
+        setActionStatus(root, `Downloaded ${name}`);
+      } catch {
+        setActionStatus(root, 'The PDF could not be created. Use Print and choose “Save as PDF”.');
+      }
+    },
+    onPrint: () => window.print(),
   });
 
   writeControls();

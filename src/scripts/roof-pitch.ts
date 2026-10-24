@@ -14,7 +14,10 @@ import {
 import { cmToInches, inchesToCm, inchesToFtIn, parseNum, trimNum } from '../lib/calc/units';
 import { triangleGeometry } from '../lib/pitch-diagram';
 import { buildPitchQuery, parsePitchParams } from '../lib/url-state/pitch';
+import { pitchReport } from '../lib/report';
+import { SITE } from '../config/site';
 import { copyText, flashLabel, shareLink } from './clipboard';
+import { initDownloadMenu, setActionStatus } from './download-menu';
 
 const MODES: PitchMode[] = ['rr', 'angle', 'pitch'];
 const FIELDS = ['riseFt', 'riseIn', 'runFt', 'runIn', 'riseCm', 'runCm', 'angle', 'pitch'] as const;
@@ -58,7 +61,6 @@ export function initRoofPitchTool(root: HTMLElement, opts: InitOptions = {}) {
     rise: svg?.querySelector<SVGTextElement>('[data-dg="rise"]'),
     ang: svg?.querySelector('[data-dg="ang"]'),
   };
-  const shareUrlEl = $('[data-share-url]');
   const printUrlEl = $('[data-print-url]');
   const live = $('[data-live]');
   const actBtns = $$<HTMLButtonElement>('[data-act]');
@@ -79,6 +81,7 @@ export function initRoofPitchTool(root: HTMLElement, opts: InitOptions = {}) {
     return `${location.origin}${toolPath}${q ? `?${q}` : ''}`;
   }
 
+  let dlMenu: ReturnType<typeof initDownloadMenu> = null;
   let liveTimer = 0;
   let urlTimer = 0;
 
@@ -157,8 +160,10 @@ export function initRoofPitchTool(root: HTMLElement, opts: InitOptions = {}) {
     // Actions
     for (const b of actBtns) b.disabled = !valid;
     const url = shareUrl();
-    if (shareUrlEl) shareUrlEl.textContent = url.replace(/^https?:\/\//, '');
     if (printUrlEl) printUrlEl.textContent = url;
+    // The share link is only shown after "Share link" is used; a change of input makes it stale.
+    if (writeUrl) setActionStatus(root, '');
+    if (!valid) dlMenu?.close();
 
     // Carry pitch into the materials calculator
     document.querySelectorAll<HTMLAnchorElement>('[data-pitch-next]').forEach((a) => {
@@ -306,18 +311,37 @@ export function initRoofPitchTool(root: HTMLElement, opts: InitOptions = {}) {
   root.querySelector('[data-act="share"]')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget as HTMLButtonElement;
     const { f } = render(false);
+    const url = shareUrl();
     const r = await shareLink({
       title: 'Roof pitch calculation',
       text: f ? `Roof pitch ${f.pitch} (${f.angle})` : 'Roof pitch calculator',
-      url: shareUrl(),
+      url,
     });
-    if (r === 'copied') flashLabel(btn, 'Link copied ✓');
-    else if (r === 'failed') flashLabel(btn, 'Copy failed');
+    if (r === 'copied') {
+      flashLabel(btn, 'Link copied ✓');
+      setActionStatus(root, 'Link copied:', url);
+    } else if (r === 'shared') setActionStatus(root, 'Link shared:', url);
+    else if (r === 'failed') setActionStatus(root, 'Copy this link:', url);
   });
 
-  root.querySelector('[data-act="print"]')?.addEventListener('click', () => {
-    render(false);
-    window.print();
+  dlMenu = initDownloadMenu(root, {
+    onPdf: async () => {
+      render(false);
+      const report = pitchReport(state, { brand: SITE.brand, date: new Date(), siteUrl: (import.meta.env.SITE ?? location.origin).replace(/\/$/, ''), shareUrl: shareUrl() });
+      if (!report) return;
+      setActionStatus(root, 'Preparing PDF…');
+      try {
+        const { downloadReportPdf } = await import('./pdf-download');
+        const name = await downloadReportPdf(report);
+        setActionStatus(root, `Downloaded ${name}`);
+      } catch {
+        setActionStatus(root, 'The PDF could not be created. Use Print and choose “Save as PDF”.');
+      }
+    },
+    onPrint: () => {
+      render(false);
+      window.print();
+    },
   });
 
   writeInputs();

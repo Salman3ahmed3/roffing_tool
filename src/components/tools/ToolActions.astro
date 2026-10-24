@@ -1,6 +1,164 @@
-<div class="actions tool-actions">
-  <button type="button" class="btn btn-primary" data-act="copy">Copy results</button>
-  <button type="button" class="btn btn-secondary" data-act="share">Share link</button>
-  <button type="button" class="btn btn-secondary" data-act="print">Print</button>
-  <span class="share-url mono" data-share-url></span>
+---
+/**
+ * Copy / Share / Download row shared by every calculator.
+ * Behaviour: src/scripts/download-menu.ts (+ the tool's own script for copy/share/report data).
+ */
+interface Props {
+  /** Prefix for element ids; unique per page. */
+  id?: string;
+}
+const { id = 'tool' } = Astro.props;
+---
+
+<div class="tool-actions" data-actions>
+  <div class="act-row">
+    <button type="button" class="btn btn-primary act-btn" data-act="copy">Copy results</button>
+    <button type="button" class="btn btn-secondary act-btn" data-act="share">Share link</button>
+    <div class="dl" data-download>
+      <button
+        type="button"
+        class="btn btn-secondary act-btn dl-trigger"
+        data-act="download"
+        id={`${id}-dl`}
+        aria-haspopup="menu"
+        aria-expanded="false"
+        aria-controls={`${id}-dl-menu`}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true">
+          <path d="M12 3v12M7 10l5 5 5-5M4 20h16"></path>
+        </svg>
+        <span>Download</span>
+        <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path d="M6 9l6 6 6-6"></path>
+        </svg>
+      </button>
+      <div class="dl-menu" id={`${id}-dl-menu`} role="menu" aria-labelledby={`${id}-dl`} hidden>
+        <button type="button" role="menuitem" tabindex="-1" data-dl="pdf">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true">
+            <path d="M6 2h9l5 5v15H6z M14 2v6h6 M9 13h8 M9 17h6"></path>
+          </svg>
+          Download PDF
+        </button>
+        <button type="button" role="menuitem" tabindex="-1" data-dl="print">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true">
+            <path d="M7 9V3h10v6 M7 18H4v-8h16v8h-3 M7 14h10v7H7z"></path>
+          </svg>
+          Print
+        </button>
+      </div>
+    </div>
+  </div>
+  <p class="act-status" data-act-status role="status"><span data-act-msg></span><span class="mono act-url" data-share-url></span></p>
 </div>
+
+<style>
+  .tool-actions {
+    padding: var(--space-3) var(--space-4);
+    border-top: var(--line);
+  }
+  .act-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .act-btn {
+    justify-content: center;
+    text-align: center;
+    padding: 0 var(--space-4);
+  }
+  .dl {
+    position: relative;
+  }
+  .dl-trigger {
+    gap: var(--space-2);
+  }
+  .dl-trigger[aria-expanded='true'] {
+    background: var(--color-accent-100);
+    border-color: var(--color-accent-600);
+    color: var(--color-accent-700);
+  }
+  .dl-trigger[aria-expanded='true'] .chev {
+    transform: rotate(180deg);
+  }
+  .dl-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 15;
+    min-width: 200px;
+    padding: var(--space-1) 0;
+    background: var(--color-surface);
+    border: var(--line);
+    border-top: var(--rule);
+    box-shadow: var(--shadow-md);
+  }
+  .dl-menu[hidden] {
+    display: none;
+  }
+  .dl-menu [role='menuitem'] {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    border: 0;
+    background: none;
+    color: var(--color-text);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .dl-menu [role='menuitem']:hover,
+  .dl-menu [role='menuitem']:focus-visible {
+    background: var(--color-accent-100);
+    color: var(--color-accent-700);
+  }
+  .dl-menu [role='menuitem']:focus-visible {
+    outline-offset: -2px;
+  }
+  .act-status {
+    margin: 0;
+    font-size: 13px;
+    color: var(--color-neutral-700);
+    overflow-wrap: anywhere;
+  }
+  .act-status[data-on] {
+    margin-top: var(--space-2);
+  }
+  .act-url {
+    margin-left: 6px;
+    font-size: 12px;
+    color: var(--color-text);
+  }
+  @media (min-width: 900px) {
+    .tool-actions {
+      padding: var(--space-4) var(--space-6);
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .chev {
+      transition: transform 150ms ease;
+    }
+    .dl-menu:not([hidden]) {
+      animation: dl-in 150ms ease-out;
+    }
+  }
+  @keyframes dl-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media print {
+    .tool-actions {
+      display: none !important;
+    }
+  }
+</style>
