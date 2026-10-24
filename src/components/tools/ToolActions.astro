@@ -12,13 +12,19 @@ const { id = 'tool' } = Astro.props;
 
 <div class="tool-actions" data-actions>
   <div class="act-row">
-    <button type="button" class="btn btn-primary act-btn" data-act="copy">Copy results</button>
-    <button type="button" class="btn btn-secondary act-btn" data-act="share">Share link</button>
+    <button type="button" class="btn btn-primary act-btn act-copy" data-act="copy">Copy results</button>
+    <button type="button" class="btn btn-secondary act-btn act-icon" data-act="share" aria-label="Share link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true">
+        <path d="M10 14a4 4 0 0 0 5.7 0l3.6-3.6a4 4 0 0 0-5.7-5.7L12 6.3 M14 10a4 4 0 0 0-5.7 0l-3.6 3.6a4 4 0 0 0 5.7 5.7l1.6-1.6"></path>
+      </svg>
+      <span class="act-text">Share link</span>
+    </button>
     <div class="dl" data-download>
       <button
         type="button"
-        class="btn btn-secondary act-btn dl-trigger"
+        class="btn btn-secondary act-btn act-icon dl-trigger"
         data-act="download"
+        aria-label="Download"
         id={`${id}-dl`}
         aria-haspopup="menu"
         aria-expanded="false"
@@ -27,7 +33,7 @@ const { id = 'tool' } = Astro.props;
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true">
           <path d="M12 3v12M7 10l5 5 5-5M4 20h16"></path>
         </svg>
-        <span>Download</span>
+        <span class="act-text">Download</span>
         <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
           <path d="M6 9l6 6 6-6"></path>
         </svg>
@@ -48,7 +54,7 @@ const { id = 'tool' } = Astro.props;
       </div>
     </div>
   </div>
-  <p class="act-status" data-act-status role="status"><span data-act-msg></span><span class="mono act-url" data-share-url></span></p>
+  <p class="act-status" data-act-status role="status" aria-live="polite"><span class="act-ok" data-act-ok aria-hidden="true"></span><span data-act-msg></span><span class="mono act-url" data-share-url></span></p>
 </div>
 
 <style>
@@ -65,6 +71,7 @@ const { id = 'tool' } = Astro.props;
   .act-btn {
     justify-content: center;
     text-align: center;
+    gap: var(--space-2);
     padding: 0 var(--space-4);
   }
   .dl {
@@ -81,16 +88,17 @@ const { id = 'tool' } = Astro.props;
   .dl-trigger[aria-expanded='true'] .chev {
     transform: rotate(180deg);
   }
+  /* Right edge lines up with the Download button so the menu opens inward, never past the card. */
   .dl-menu {
     position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
+    top: calc(100% - 1px);
+    right: 0;
     z-index: 15;
-    min-width: 200px;
+    min-width: max(100%, 200px);
+    max-width: calc(100vw - 32px);
     padding: var(--space-1) 0;
     background: var(--color-surface);
     border: var(--line);
-    border-top: var(--rule);
     box-shadow: var(--shadow-md);
   }
   .dl-menu[hidden] {
@@ -121,17 +129,46 @@ const { id = 'tool' } = Astro.props;
   }
   .act-status {
     margin: 0;
-    font-size: 13px;
-    color: var(--color-neutral-700);
+    font-size: 14px;
+    font-weight: var(--fw-semibold);
+    color: var(--color-text);
+    white-space: normal;
     overflow-wrap: anywhere;
   }
   .act-status[data-on] {
     margin-top: var(--space-2);
   }
-  .act-url {
-    margin-left: 6px;
+  .act-ok:not(:empty) {
+    margin-right: 6px;
+    color: var(--color-accent);
+  }
+  .act-url:not(:empty) {
+    display: block;
+    margin-top: var(--space-1);
     font-size: 12px;
-    color: var(--color-text);
+    font-weight: normal;
+    user-select: all;
+  }
+  /* Phones: one row. Copy fills the width; Share and Download become 48×48 icon buttons. */
+  @media (max-width: 479px) {
+    .act-row {
+      flex-wrap: nowrap;
+    }
+    .act-copy {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .act-icon {
+      flex: none;
+      width: 48px;
+      height: 48px;
+      min-height: 48px;
+      padding: 0;
+    }
+    .act-icon .act-text,
+    .act-icon .chev {
+      display: none;
+    }
   }
   @media (min-width: 900px) {
     .tool-actions {
@@ -146,14 +183,13 @@ const { id = 'tool' } = Astro.props;
       animation: dl-in 150ms ease-out;
     }
   }
+  /* Fade only: a slide would open a gap between the button and the menu. */
   @keyframes dl-in {
     from {
       opacity: 0;
-      transform: translateY(4px);
     }
     to {
       opacity: 1;
-      transform: none;
     }
   }
   @media print {

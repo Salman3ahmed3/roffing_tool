@@ -11,7 +11,7 @@ import { SPECS, type SpecId } from '../../lib/tools/registry';
 interface Props {
   spec: SpecId;
   label: string;
-  results: { key: string; label: string; short?: string }[];
+  results: { key: string; label: string }[];
   listNote?: string;
 }
 const { spec, label, results, listNote } = Astro.props;
@@ -39,16 +39,7 @@ const view = s.evaluate(s.defaults);
       {
         results.map((r, i) => (
           <div class:list={['result', { primary: i === 0 }]}>
-            <dt>
-              {r.short ? (
-                <>
-                  <span class="long">{r.label}</span>
-                  <span class="short" aria-hidden="true">{r.short}</span>
-                </>
-              ) : (
-                r.label
-              )}
-            </dt>
+            <dt>{r.label}</dt>
             <dd data-out={r.key}>{view.results?.[r.key]?.value ?? '—'}</dd>
             <dd class="sub" data-sub={r.key}>{view.results?.[r.key]?.sub ?? ''}</dd>
           </div>

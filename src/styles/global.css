@@ -406,9 +406,13 @@ code,
 .result:nth-child(odd) {
   border-right: var(--line);
 }
+/* Labels are never abbreviated: they wrap to a second line instead, and every label in the
+   grid gets the same height so the numbers below stay on one baseline. */
 .result dt {
+  min-height: 2.7em;
   font-size: 11px;
   font-weight: var(--fw-semibold);
+  line-height: 1.35;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-neutral-700);
@@ -426,9 +430,6 @@ code,
 }
 .result dd.empty {
   color: var(--color-neutral-600);
-}
-.result .long {
-  display: none;
 }
 @media (min-width: 900px) {
   .results.four {
@@ -448,11 +449,20 @@ code,
   .results.four .result dd {
     font-size: var(--fs-result);
   }
-  .result .long {
-    display: inline;
-  }
-  .result .short {
-    display: none;
+}
+/* Desktop is one row of four: share label/value/sub rows across the cells, so labels only take
+   two lines when one of them actually wraps. */
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 900px) {
+    .results.four .result {
+      display: grid;
+      grid-row: span 3;
+      grid-template-rows: subgrid;
+      align-content: start;
+    }
+    .results.four .result dt {
+      min-height: 0;
+    }
   }
 }
 @media (max-width: 899px) {

@@ -11,7 +11,7 @@ const markup = `
         <button type="button" role="menuitem" tabindex="-1" data-dl="print">Print</button>
       </div>
     </div>
-    <p data-act-status role="status"><span data-act-msg></span><span data-share-url></span></p>
+    <p data-act-status role="status" aria-live="polite"><span data-act-ok></span><span data-act-msg></span><span data-share-url></span></p>
   </div>
   <button id="outside">elsewhere</button>`;
 
@@ -101,15 +101,55 @@ describe('download menu', () => {
     key(trigger, 'ArrowDown');
     expect(menu.hidden).toBe(true);
   });
-  it('status line shows the link only when set', () => {
-    const root = document.getElementById('root')!;
-    const status = document.querySelector('[data-act-status]')!;
-    expect(status.hasAttribute('data-on')).toBe(false);
-    setActionStatus(root, 'Link copied:', 'https://exteriormath.com/deck-calculator/?len=16');
-    expect(status.hasAttribute('data-on')).toBe(true);
-    expect(status.textContent).toBe('Link copied:exteriormath.com/deck-calculator/?len=16');
-    setActionStatus(root, '');
-    expect(status.hasAttribute('data-on')).toBe(false);
-    expect(status.textContent).toBe('');
+  it('status shows a short confirmation and hides itself after 4 seconds', () => {
+    vi.useFakeTimers();
+    try {
+      const root = document.getElementById('root')!;
+      const status = document.querySelector('[data-act-status]')!;
+      expect(status.getAttribute('aria-live')).toBe('polite');
+      expect(status.hasAttribute('data-on')).toBe(false);
+      setActionStatus(root, 'PDF downloaded', { ok: true });
+      expect(status.hasAttribute('data-on')).toBe(true);
+      expect(status.textContent).toBe('✓PDF downloaded');
+      vi.advanceTimersByTime(3900);
+      expect(status.textContent).toBe('✓PDF downloaded');
+      vi.advanceTimersByTime(200);
+      expect(status.hasAttribute('data-on')).toBe(false);
+      expect(status.textContent).toBe('');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+  it('a newer message resets the hide timer', () => {
+    vi.useFakeTimers();
+    try {
+      const root = document.getElementById('root')!;
+      const status = document.querySelector('[data-act-status]')!;
+      setActionStatus(root, 'Link copied', { ok: true });
+      vi.advanceTimersByTime(3000);
+      setActionStatus(root, 'PDF downloaded', { ok: true });
+      vi.advanceTimersByTime(3000);
+      expect(status.textContent).toBe('✓PDF downloaded');
+      vi.advanceTimersByTime(1100);
+      expect(status.textContent).toBe('');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+  it('the clipboard fallback keeps the full link on screen', () => {
+    vi.useFakeTimers();
+    try {
+      const root = document.getElementById('root')!;
+      const status = document.querySelector('[data-act-status]')!;
+      const url = 'https://exteriormath.com/deck-calculator/?len=16';
+      setActionStatus(root, 'Copy this link:', { url });
+      vi.advanceTimersByTime(10000);
+      expect(status.textContent).toBe('Copy this link:' + url);
+      setActionStatus(root, '');
+      expect(status.hasAttribute('data-on')).toBe(false);
+      expect(status.textContent).toBe('');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

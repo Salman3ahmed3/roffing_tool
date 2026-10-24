@@ -308,8 +308,7 @@ export function initRoofPitchTool(root: HTMLElement, opts: InitOptions = {}) {
     flashLabel(btn, (await copyText(text)) ? 'Copied ✓' : 'Copy failed');
   });
 
-  root.querySelector('[data-act="share"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
+  root.querySelector('[data-act="share"]')?.addEventListener('click', async () => {
     const { f } = render(false);
     const url = shareUrl();
     const r = await shareLink({
@@ -317,11 +316,9 @@ export function initRoofPitchTool(root: HTMLElement, opts: InitOptions = {}) {
       text: f ? `Roof pitch ${f.pitch} (${f.angle})` : 'Roof pitch calculator',
       url,
     });
-    if (r === 'copied') {
-      flashLabel(btn, 'Link copied ✓');
-      setActionStatus(root, 'Link copied:', url);
-    } else if (r === 'shared') setActionStatus(root, 'Link shared:', url);
-    else if (r === 'failed') setActionStatus(root, 'Copy this link:', url);
+    if (r === 'copied') setActionStatus(root, 'Link copied', { ok: true });
+    else if (r === 'shared') setActionStatus(root, 'Link shared', { ok: true });
+    else if (r === 'failed') setActionStatus(root, 'Copy this link:', { url });
   });
 
   dlMenu = initDownloadMenu(root, {
@@ -332,8 +329,8 @@ export function initRoofPitchTool(root: HTMLElement, opts: InitOptions = {}) {
       setActionStatus(root, 'Preparing PDF…');
       try {
         const { downloadReportPdf } = await import('./pdf-download');
-        const name = await downloadReportPdf(report);
-        setActionStatus(root, `Downloaded ${name}`);
+        await downloadReportPdf(report);
+        setActionStatus(root, 'PDF downloaded', { ok: true });
       } catch {
         setActionStatus(root, 'The PDF could not be created. Use Print and choose “Save as PDF”.');
       }

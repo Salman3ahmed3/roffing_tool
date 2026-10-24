@@ -100,13 +100,34 @@ export function initDownloadMenu(root: ParentNode, handlers: DownloadHandlers): 
   return { open, close, isOpen };
 }
 
-/** Status line under the action buttons ("Link copied: …", "Preparing PDF…"). */
-export function setActionStatus(root: ParentNode, message: string, url = ''): void {
+export interface StatusOptions {
+  /** Prefix the message with a check mark (visual only). */
+  ok?: boolean;
+  /** A link to show in full, e.g. when the clipboard is blocked and the reader must copy it by hand. */
+  url?: string;
+  /** Hide after this many ms. Defaults to 4000 for ok messages; 0 keeps the message. */
+  hideAfter?: number;
+}
+
+const hideTimers = new WeakMap<Element, ReturnType<typeof setTimeout>>();
+
+/** Status line under the action buttons ("✓ Link copied", "✓ PDF downloaded"). Announced politely. */
+export function setActionStatus(root: ParentNode, message: string, opts: StatusOptions = {}): void {
   const status = root.querySelector<HTMLElement>('[data-act-status]');
   if (!status) return;
+  const mark = status.querySelector('[data-act-ok]');
   const msg = status.querySelector('[data-act-msg]');
   const link = status.querySelector('[data-share-url]');
+  clearTimeout(hideTimers.get(status));
+  if (mark) mark.textContent = message && opts.ok ? '✓' : '';
   if (msg) msg.textContent = message;
-  if (link) link.textContent = url.replace(/^https?:\/\//, '');
-  status.toggleAttribute('data-on', Boolean(message || url));
+  if (link) link.textContent = opts.url ?? '';
+  status.toggleAttribute('data-on', Boolean(message || opts.url));
+  const hideAfter = opts.hideAfter ?? (opts.ok ? 4000 : 0);
+  if (message && hideAfter > 0) {
+    hideTimers.set(
+      status,
+      setTimeout(() => setActionStatus(root, ''), hideAfter),
+    );
+  }
 }

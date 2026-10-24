@@ -157,7 +157,7 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
   function resultLines(): string[] {
     if (!view.results) return [];
     return $$('[data-results] .result').map((cell) => {
-      const label = (cell.querySelector('dt .long') ?? cell.querySelector('dt'))?.textContent?.trim() ?? '';
+      const label = cell.querySelector('dt')?.textContent?.trim() ?? '';
       const key = cell.querySelector<HTMLElement>('[data-out]')?.dataset.out ?? '';
       const r = view.results?.[key];
       return r ? `${label}: ${r.value}${r.sub ? ` (${r.sub})` : ''}` : '';
@@ -202,15 +202,12 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
     const text = [`${spec.title} — ${view.listMeta}`, ...resultLines(), '', ...view.list.map((i) => `${i.name}: ${i.qty} ${i.unit}`), '', shareUrl()].join('\n');
     flashLabel(btn, (await copyText(text)) ? 'Copied ✓' : 'Copy failed');
   });
-  $('[data-act="share"]')?.addEventListener('click', async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
+  $('[data-act="share"]')?.addEventListener('click', async () => {
     const url = shareUrl();
     const r = await shareLink({ title: `${spec.title} calculation`, text: view.listMeta, url });
-    if (r === 'copied') {
-      flashLabel(btn, 'Link copied ✓');
-      setActionStatus(root, 'Link copied:', url);
-    } else if (r === 'shared') setActionStatus(root, 'Link shared:', url);
-    else if (r === 'failed') setActionStatus(root, 'Copy this link:', url);
+    if (r === 'copied') setActionStatus(root, 'Link copied', { ok: true });
+    else if (r === 'shared') setActionStatus(root, 'Link shared', { ok: true });
+    else if (r === 'failed') setActionStatus(root, 'Copy this link:', { url });
   });
   // "Print list" in the materials list header.
   for (const b of $$('[data-act="print"]')) b.addEventListener('click', () => window.print());
@@ -230,8 +227,8 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
       setActionStatus(root, 'Preparing PDF…');
       try {
         const { downloadReportPdf } = await import('./pdf-download');
-        const name = await downloadReportPdf(report);
-        setActionStatus(root, `Downloaded ${name}`);
+        await downloadReportPdf(report);
+        setActionStatus(root, 'PDF downloaded', { ok: true });
       } catch {
         setActionStatus(root, 'The PDF could not be created. Use Print and choose “Save as PDF”.');
       }
