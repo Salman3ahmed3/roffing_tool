@@ -15,7 +15,8 @@ const { items, meta, note = 'Quantities rounded up to whole packages. Check cove
       <span class="muted" data-list-meta>{meta}</span>
     </div>
     <div class="mlist-btns">
-      <button type="button" class="btn btn-secondary" data-act="print">Print list</button>
+      <button type="button" class="btn-text mlist-clear" data-clear-ticks hidden>Clear ticks</button>
+      <button type="button" class="btn btn-secondary" data-act="print-list">Print list</button>
       <a class="btn btn-secondary" href="mailto:" data-act-email>Email list</a>
     </div>
   </div>
@@ -34,4 +35,5 @@ const { items, meta, note = 'Quantities rounded up to whole packages. Check cove
     }
   </ul>
   <p class="mlist-note">{note}</p>
+  <p class="list-url">Open or edit this calculation: <span data-print-url></span></p>
 </section>

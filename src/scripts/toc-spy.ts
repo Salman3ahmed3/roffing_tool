@@ -13,7 +13,6 @@ export function initTocSpy(nav: HTMLElement): () => void {
     .filter((p): p is { a: HTMLAnchorElement; h: HTMLElement } => p.h !== null);
   if (pairs.length === 0) return () => {};
 
-  const list = nav.querySelector<HTMLElement>('ol') ?? nav;
   let current = -1;
   let locked: number | null = null;
   let atBottom = false;

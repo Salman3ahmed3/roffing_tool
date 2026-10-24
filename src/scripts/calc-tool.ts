@@ -9,6 +9,9 @@ import { SITE } from '../config/site';
 import { copyText, flashLabel, shareLink } from './clipboard';
 import { initDownloadMenu, setActionStatus } from './download-menu';
 import { whenMatches } from '../lib/tools/fields';
+import { buildListText, buildMailto, toolListData } from '../lib/tools/list-text';
+import { loadTicks, pruneTicks, saveTicks } from '../lib/tools/ticks';
+import { printListOnly } from './print-list';
 
 type Control = HTMLInputElement | HTMLSelectElement;
 
@@ -49,6 +52,8 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
   let liveTimer = 0;
   let urlTimer = 0;
   let view: ToolView = spec.evaluate(state);
+  /** Ticked list items (by name), restored from localStorage. */
+  let ticked = loadTicks(spec.id);
 
   function shareUrl() {
     const q = buildToolQuery(state);
@@ -83,10 +88,15 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
     const summary = $('[data-summary]');
     if (summary) summary.textContent = view.summary;
 
-    // Materials list (keep ticks for items that are still there)
+    // Materials list. Ticks for items that no longer exist are dropped (only once the results are
+    // valid, so clearing a field mid-edit doesn't wipe them); quantity changes keep them.
+    if (view.results) {
+      const kept = pruneTicks(ticked, view.list.map((i) => i.name));
+      if (kept.size !== ticked.size) saveTicks(spec.id, kept);
+      ticked = kept;
+    }
     const list = $('[data-list]');
     if (list) {
-      const ticked = new Set($$<HTMLInputElement>('[data-list] input:checked').map((i) => i.dataset.key));
       list.replaceChildren(
         ...view.list.map((it) => {
           const li = document.createElement('li');
@@ -110,6 +120,7 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
         }),
       );
     }
+    syncClearTicks();
     const meta = $('[data-list-meta]');
     if (meta) {
       const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -121,7 +132,8 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
     for (const b of $$<HTMLButtonElement>('button[data-act]')) b.disabled = !ok;
     const email = $<HTMLAnchorElement>('[data-act-email]');
     if (email) {
-      email.href = ok ? `mailto:?subject=${encodeURIComponent(`${spec.title} list`)}&body=${encodeURIComponent(plainText())}` : '#';
+      const data = listData();
+      email.href = data ? buildMailto(data, spec.listText.subject(state)).href : '#';
       email.toggleAttribute('aria-disabled', !ok);
       if (!ok) email.setAttribute('aria-disabled', 'true');
       email.tabIndex = ok ? 0 : -1;
@@ -130,8 +142,7 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
     // The share link is only shown after "Share link" is used; a change of input makes it stale.
     if (writeUrl) setActionStatus(root, '');
     if (!ok) dlMenu?.close();
-    const pu = $('[data-print-url]');
-    if (pu) pu.textContent = url;
+    for (const pu of $$('[data-print-url]')) pu.textContent = url;
 
     window.clearTimeout(liveTimer);
     liveTimer = window.setTimeout(() => {
@@ -161,15 +172,13 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
     });
   }
 
-  function plainText(): string {
-    return [
-      `${spec.title} — ${view.listMeta}`,
-      '',
-      ...view.list.map((i) => `[ ] ${i.name}: ${i.qty} ${i.unit}`),
-      '',
-      view.summary,
-      shareUrl(),
-    ].join('\n');
+  function listData() {
+    return toolListData(spec, state, view, { brand: SITE.brand, date: new Date(), url: shareUrl() });
+  }
+
+  function syncClearTicks() {
+    const btn = $<HTMLButtonElement>('[data-clear-ticks]');
+    if (btn) btn.hidden = ticked.size === 0;
   }
 
   // ── Events ─────────────────────────────────────────
@@ -196,8 +205,9 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
 
   $('[data-act="copy"]')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget as HTMLButtonElement;
-    const text = [`${spec.title} — ${view.listMeta}`, ...resultLines(), '', ...view.list.map((i) => `${i.name}: ${i.qty} ${i.unit}`), '', shareUrl()].join('\n');
-    flashLabel(btn, (await copyText(text)) ? 'Copied ✓' : 'Copy failed');
+    const data = listData();
+    if (!data) return;
+    flashLabel(btn, (await copyText(buildListText(data, { results: true }))) ? 'Copied ✓' : 'Copy failed');
   });
   $('[data-act="share"]')?.addEventListener('click', async () => {
     const url = shareUrl();
@@ -206,10 +216,52 @@ export function initCalcTool(root: HTMLElement, spec: ToolSpec) {
     else if (r === 'shared') setActionStatus(root, 'Link shared', { ok: true });
     else if (r === 'failed') setActionStatus(root, 'Copy this link:', { url });
   });
-  // "Print list" in the materials list header.
-  for (const b of $$('[data-act="print"]')) b.addEventListener('click', () => window.print());
+  // Ticking items: remember them per tool.
+  $('[data-list]')?.addEventListener('change', (e) => {
+    const cb = e.target as HTMLInputElement;
+    if (cb.type !== 'checkbox' || !cb.dataset.key) return;
+    if (cb.checked) ticked.add(cb.dataset.key);
+    else ticked.delete(cb.dataset.key);
+    saveTicks(spec.id, ticked);
+    syncClearTicks();
+  });
+  $('[data-clear-ticks]')?.addEventListener('click', () => {
+    ticked = new Set();
+    saveTicks(spec.id, ticked);
+    for (const cb of $$<HTMLInputElement>('[data-list] input[type="checkbox"]')) cb.checked = false;
+    syncClearTicks();
+    // The button hides itself; keep keyboard focus in the list.
+    $<HTMLInputElement>('[data-list] input[type="checkbox"]')?.focus();
+  });
+
+  // "Print list" prints the list view only; Download → Print still prints the whole page.
+  $('[data-act="print-list"]')?.addEventListener('click', () => printListOnly());
+
+  // "Email list": mailto, with a fallback when no mail app takes it. If the page still has focus
+  // about a second later, nothing opened, so copy the text and say so.
   $('[data-act-email]')?.addEventListener('click', (e) => {
-    if (!view.results) e.preventDefault();
+    const link = e.currentTarget as HTMLElement;
+    const data = listData();
+    if (!data) {
+      e.preventDefault();
+      return;
+    }
+    let left = false;
+    const onBlur = () => (left = true);
+    window.addEventListener('blur', onBlur, { once: true });
+    document.addEventListener('visibilitychange', onBlur, { once: true });
+    window.setTimeout(async () => {
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('visibilitychange', onBlur);
+      if (left || !document.hasFocus()) return;
+      const copied = await copyText(buildListText(data));
+      if (copied) flashLabel(link, 'List copied ✓', 3000);
+      setActionStatus(
+        root,
+        copied ? 'No email app found. List copied, paste it into your email.' : 'No email app found. Use Copy results and paste the list into your email.',
+        { hideAfter: 10000 },
+      );
+    }, 1000);
   });
 
   dlMenu = initDownloadMenu(root, {

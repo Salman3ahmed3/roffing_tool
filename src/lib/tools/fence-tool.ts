@@ -149,6 +149,8 @@ export function describeFenceInputs(s: ToolState): [string, string][] {
   ];
 }
 
+const fenceUnits = (s: ToolState) => (s.u === 'met' ? 'm' : 'ft');
+
 export const fenceSpec: ToolSpec = {
   id: 'fence',
   title: 'Fence materials',
@@ -165,6 +167,20 @@ export const fenceSpec: ToolSpec = {
   resultLabels: { posts: 'Posts', rails: 'Rails', pickets: 'Pickets', bags: 'Concrete bags' },
   describeInputs: describeFenceInputs,
   fileKey: (v) => (v.results ? `${v.results.posts.value}-posts` : 'results'),
+  listText: {
+    inputsHeading: 'YOUR FENCE',
+    notIncluded: 'gates, post caps, brackets and fasteners',
+    inputs: (s) => {
+      const rows: [string, string][] = [
+        ['Length', `${s.len} ${fenceUnits(s)}`],
+        ['Post spacing', `${s.space} ${fenceUnits(s)}`],
+        ['Rails', `${s.rails} per section`],
+      ];
+      if (s.corners && s.corners !== '0') rows.push(['Corners', s.corners]);
+      return rows;
+    },
+    subject: (s) => `Fence materials list · ${s.len} ${fenceUnits(s)}`,
+  },
   defaults: FENCE_DEFAULTS,
   evaluate: evaluateFence,
   convertUnits: convertFenceUnits,

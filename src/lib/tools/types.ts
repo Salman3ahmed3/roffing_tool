@@ -30,6 +30,18 @@ export interface ToolView {
 
 export type ReportRow = [label: string, value: string];
 
+/** Wording for the plain-text list (email / copy). */
+export interface ListTextSpec {
+  /** e.g. "YOUR FENCE" */
+  inputsHeading: string;
+  /** e.g. "gates, post caps, brackets and fasteners" */
+  notIncluded: string;
+  /** Short input lines, e.g. ["Length", "100 ft"]. */
+  inputs(s: ToolState): ReportRow[];
+  /** Email subject, e.g. "Fence materials list · 100 ft". */
+  subject(s: ToolState): string;
+}
+
 export interface ToolSpec {
   id: string;
   title: string;
@@ -46,6 +58,7 @@ export interface ToolSpec {
   describeInputs(s: ToolState): ReportRow[];
   /** Short key for the filename from the current results, e.g. "14.8-squares". */
   fileKey(v: ToolView): string;
+  listText: ListTextSpec;
   /** Keys whose fields are shown only when another key has a value: { area: ['by', 'area'] }. */
   evaluate(s: ToolState): ToolView;
   /** Convert length fields when the unit system changes. */

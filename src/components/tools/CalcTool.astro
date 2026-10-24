@@ -345,7 +345,31 @@ const view = s.evaluate(s.defaults);
   }
   .mlist-btns {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: var(--space-2);
+  }
+  /* Small text button, shown only while something is ticked. */
+  .mlist-clear {
+    min-height: 44px;
+    padding: 0 var(--space-2);
+    border: 0;
+    background: none;
+    font-size: 14px;
+    font-weight: var(--fw-semibold);
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .mlist-clear:hover {
+    color: var(--color-accent-700);
+  }
+  .mlist-clear[hidden] {
+    display: none;
+  }
+  .list-url {
+    display: none;
   }
   .mlist-items {
     list-style: none;
@@ -380,9 +404,10 @@ const view = s.evaluate(s.defaults);
     font-size: 13px;
     color: var(--color-neutral-700);
   }
-  .mlist-items li:has(input:checked) .name {
+  /* Ticked: name, quantity and unit are crossed out and greyed together. */
+  .mlist-items li:has(input:checked) :is(.name, .qty, .unit) {
     text-decoration: line-through;
-    color: var(--color-neutral-700);
+    color: var(--color-neutral-600);
   }
   .mlist-items:empty::before {
     content: 'Enter valid measurements to build the list.';
@@ -460,9 +485,42 @@ const view = s.evaluate(s.defaults);
       width: 16px;
       height: 16px;
     }
-    .mlist-items li:has(input:checked) .name {
+    .mlist-items li:has(input:checked) :is(.name, .qty, .unit) {
       text-decoration: none;
       color: #000;
+    }
+
+    /* "Print list": the list view only (html.printing-list is set around window.print()). */
+    html.printing-list :is(.skip-link, .nav, .menu-toggle, .site-footer, .with-sidebar > aside) {
+      display: none !important;
+    }
+    html.printing-list .intro > :not(.row),
+    html.printing-list .intro .row > :not(.text),
+    html.printing-list .intro .lede {
+      display: none !important;
+    }
+    html.printing-list .intro {
+      padding: 0 0 8px;
+    }
+    html.printing-list .tool-page > :not(.calc),
+    html.printing-list .calc > :not(.calc-tool, .mlist),
+    html.printing-list :is(.calc-fields, .calc-status, .calc-summary, .calc .tool-actions, .calc-tool .print-url, .mlist-btns) {
+      display: none !important;
+    }
+    html.printing-list .mlist {
+      margin-top: 12px;
+    }
+    html.printing-list .mlist-items label {
+      min-height: 0;
+      padding-block: 8px;
+    }
+    html.printing-list .list-url {
+      display: block;
+      margin: 0;
+      padding: 8px 16px;
+      font-size: 12px;
+      border-top: 1px solid #000;
+      overflow-wrap: anywhere;
     }
   }
 </style>

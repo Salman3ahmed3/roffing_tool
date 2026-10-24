@@ -185,6 +185,28 @@ export const roofingSpec: ToolSpec = {
   resultLabels: { squares: 'Roof squares', bundles: 'Bundles', underlayment: 'Underlayment', drip: 'Drip edge' },
   describeInputs: describeRoofingInputs,
   fileKey: (v) => (v.results ? `${v.results.squares.value}-squares` : 'results'),
+  listText: {
+    inputsHeading: 'YOUR ROOF',
+    notIncluded: 'starter strip, ridge cap, flashing and fasteners',
+    inputs: (s) => {
+      const met = s.u === 'met';
+      const rows: [string, string][] =
+        s.by === 'area'
+          ? [['Roof area', `${s.area} ${met ? 'm²' : 'sq ft'}`]]
+          : [['Footprint', `${s.l} × ${s.w} ${met ? 'm' : 'ft'}`]];
+      if (s.by === 'area' && s.edge) rows.push(['Eaves + rakes', `${s.edge} ${met ? 'm' : 'ft'}`]);
+      const ul = UNDERLAYMENT_OPTIONS.find((o) => o.id === s.ul) ?? UNDERLAYMENT_OPTIONS[0];
+      rows.push(
+        ['Pitch', `${s.pitch}/12`],
+        ['Roof shape', s.shape === 'hip' ? 'Hip' : 'Gable'],
+        ['Waste', `${s.waste}%`],
+        ['Underlayment', ul.label],
+      );
+      return rows;
+    },
+    subject: (s) =>
+      `Roofing materials list · ${s.by === 'area' ? `${s.area} ${s.u === 'met' ? 'm²' : 'sq ft'}` : `${s.l} × ${s.w} ${s.u === 'met' ? 'm' : 'ft'}`}`,
+  },
   defaults: ROOFING_DEFAULTS,
   evaluate: evaluateRoofing,
   convertUnits: convertRoofingUnits,
