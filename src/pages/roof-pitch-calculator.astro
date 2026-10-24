@@ -76,7 +76,7 @@ const jsonLd = [
           <span class="kicker">Next step · pitch carries over</span>
           <span class="title">Now calculate how many shingles you need</span>
         </span>
-        <span class="arrow" aria-hidden="true">→</span>
+        <span class="arrow" aria-hidden="true"><span class="arrow-glyph">→</span></span>
       </a>
 
       <AdSlot placement="belowTool" class="ad-gap" />
@@ -88,45 +88,41 @@ const jsonLd = [
           roof.
         </p>
         <ol class="steps">
-          <li>
+          <li class="info-card step">
+            <span class="step-no">Step 1</span>
             <div class="step-art blueprint">
               <svg width="220" height="130" viewBox="0 0 200 120" aria-hidden="true">
-                <line x1="20" y1="110" x2="180" y2="30" stroke="#1b1f24" stroke-width="3"></line>
-                <rect x="60" y="44" width="80" height="6" fill="#fff" stroke="#1f4bc0" stroke-width="2"></rect>
-                <text x="100" y="36" text-anchor="middle" font-size="13" font-weight="600" fill="#1f4bc0">12″</text>
+                <line x1="20" y1="110" x2="180" y2="30" class="ink" stroke="currentColor" stroke-width="3"></line>
+                <rect x="60" y="44" width="80" height="6" class="surface-fill acc" stroke="currentColor" stroke-width="2"></rect>
+                <text x="100" y="36" text-anchor="middle" font-size="13" font-weight="600" class="acc" fill="currentColor">12″</text>
               </svg>
             </div>
-            <div class="step-text">
-              <b>Step 1</b>
-              <span>Hold the level flat with one end touching the roof. Mark 12″ from that end.</span>
-            </div>
+            <p class="step-text">Hold the level flat with one end touching the roof. Mark 12″ from that end.</p>
           </li>
-          <li>
+          <li class="info-card step">
+            <span class="step-no">Step 2</span>
             <div class="step-art blueprint">
               <svg width="220" height="130" viewBox="0 0 200 120" aria-hidden="true">
-                <line x1="20" y1="110" x2="180" y2="30" stroke="#1b1f24" stroke-width="3"></line>
-                <rect x="60" y="44" width="80" height="6" fill="#fff" stroke="#8f98a4" stroke-width="2"></rect>
-                <line x1="60" y1="50" x2="60" y2="90" stroke="#1f4bc0" stroke-width="2.5"></line>
-                <line x1="54" y1="90" x2="66" y2="90" stroke="#1f4bc0" stroke-width="2"></line>
-                <text x="44" y="76" text-anchor="end" font-size="13" font-weight="600" fill="#1f4bc0">6″</text>
+                <line x1="20" y1="110" x2="180" y2="30" class="ink" stroke="currentColor" stroke-width="3"></line>
+                <rect x="60" y="44" width="80" height="6" class="surface-fill quiet" stroke="currentColor" stroke-width="2"></rect>
+                <g class="acc">
+                  <line x1="60" y1="50" x2="60" y2="90" stroke="currentColor" stroke-width="2.5"></line>
+                  <line x1="54" y1="90" x2="66" y2="90" stroke="currentColor" stroke-width="2"></line>
+                  <text x="44" y="76" text-anchor="end" font-size="13" font-weight="600" fill="currentColor">6″</text>
+                </g>
               </svg>
             </div>
-            <div class="step-text">
-              <b>Step 2</b>
-              <span>Measure straight down from the 12″ mark to the roof surface. That is the rise.</span>
-            </div>
+            <p class="step-text">Measure straight down from the 12″ mark to the roof surface. That is the rise.</p>
           </li>
-          <li>
+          <li class="info-card step">
+            <span class="step-no">Step 3</span>
             <div class="step-art blueprint">
               <svg width="220" height="130" viewBox="0 0 200 120" aria-hidden="true">
-                <polygon points="40,90 120,50 40,50" fill="rgba(31,75,192,.08)" stroke="#1f4bc0" stroke-width="2.5"></polygon>
-                <text x="128" y="98" font-size="26" font-weight="800" fill="#1b1f24">6/12</text>
+                <polygon points="40,90 120,50 40,50" class="tint-fill acc" stroke="currentColor" stroke-width="2.5"></polygon>
+                <text x="128" y="98" font-size="26" font-weight="800" class="ink" fill="currentColor">6/12</text>
               </svg>
             </div>
-            <div class="step-text">
-              <b>Step 3</b>
-              <span>Read it as rise over 12. Enter both numbers above for the angle and multiplier.</span>
-            </div>
+            <p class="step-text">Read it as rise over 12. Enter both numbers above for the angle and multiplier.</p>
           </li>
         </ol>
       </section>
@@ -165,9 +161,9 @@ const jsonLd = [
         <ul class="common">
           {
             common.map((c) => (
-              <li>
-                <svg width="160" height="48" viewBox="0 0 160 48" aria-hidden="true">
-                  <polygon points={mini(c.ratio)} fill="none" stroke="#1f4bc0" stroke-width="2" />
+              <li class="info-card">
+                <svg width="160" height="48" viewBox="0 0 160 48" aria-hidden="true" class="acc">
+                  <polygon points={mini(c.ratio)} fill="none" stroke="currentColor" stroke-width="2" />
                 </svg>
                 <b class="tnum">{c.p}</b>
                 <span>{c.text}</span>
@@ -211,7 +207,7 @@ const jsonLd = [
             <li>U.S. Occupational Safety and Health Administration, Fall Protection in Residential Construction.</li>
           </ol>
           <p class="muted small">
-            <b class="ink">Last reviewed: {SITE.lastReviewed}</b> by {SITE.reviewer}, {SITE.reviewerCredential}.{' '}
+            Formulas are shown on this page, based on the cited sources, and covered by automated tests.{' '}
             <a href="/methodology/">Methodology</a>
           </p>
         </div>
@@ -256,61 +252,44 @@ const jsonLd = [
   .h-sm {
     font-size: 22px;
   }
-  .steps {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    border: var(--line);
-    background: var(--color-surface);
-  }
-  .steps li + li {
-    border-top: var(--line);
-  }
-  .step-art {
-    height: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .step-art text {
-    font-family: var(--font-sans);
-  }
-  .step-text {
-    padding: var(--space-4) 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 15px;
-    line-height: 1.5;
-  }
-  .step-text b {
-    font-size: 13px;
-    color: var(--color-accent);
-    text-transform: uppercase;
-  }
+  /* Text-only cards (.info-card): framed, with no hover or pointer — they are not links. */
+  .steps,
   .common {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .step {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .step-art {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: var(--line);
-    background: var(--color-surface);
+  }
+  .step-art text {
+    font-family: var(--font-sans);
+  }
+  .step-text {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .common {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .common li {
-    padding: var(--space-4);
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    border-bottom: var(--line);
-  }
-  .common li:nth-child(odd) {
-    border-right: var(--line);
-  }
-  .common li:nth-last-child(-n + 2) {
-    border-bottom: 0;
+    padding: var(--space-4);
   }
   .common svg {
     width: 100%;
@@ -323,6 +302,19 @@ const jsonLd = [
     font-size: 14px;
     line-height: 1.5;
     color: var(--color-neutral-700);
+  }
+  /* Diagram colours from tokens (SVG strokes/fills use currentColor). */
+  .acc {
+    color: var(--color-accent);
+  }
+  .quiet {
+    color: var(--color-neutral-500);
+  }
+  .surface-fill {
+    fill: var(--color-surface);
+  }
+  .tint-fill {
+    fill: var(--color-accent-100);
   }
   .two-col .col {
     display: flex;
@@ -346,20 +338,11 @@ const jsonLd = [
     .steps {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .steps li + li {
-      border-top: 0;
-      border-left: var(--line);
-    }
     .common {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
     .common li {
       padding: 20px;
-      border-bottom: 0;
-      border-right: var(--line);
-    }
-    .common li:last-child {
-      border-right: 0;
     }
     .two-col {
       display: grid;

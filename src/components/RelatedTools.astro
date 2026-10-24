@@ -14,7 +14,8 @@ const items = TOOLS.filter((t) => t.href !== exclude);
       items.map((t) => (
         <a class="tool-card" href={t.href}>
           <b>{t.name}</b>
-          <span>{t.desc}</span>
+          <span class="desc">{t.desc}</span>
+          <span class="go"><span class="go-text">Open</span> <span class="arr" aria-hidden="true">→</span></span>
         </a>
       ))
     }

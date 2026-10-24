@@ -1,6 +1,6 @@
 ---
 /**
- * Roof pitch calculator block: tabs, inputs, results, live SVG diagram, Copy / Share / Print.
+ * Roof pitch calculator block: input-mode switch, inputs, results, live SVG diagram, Copy / Share / Download.
  * Server-renders the default (6/12) state so results are visible before JS runs;
  * /src/scripts/roof-pitch.ts takes over and restores state from the URL.
  */
@@ -13,6 +13,7 @@ import {
 } from '../../lib/calc/pitch';
 import { DIAGRAM_VIEWBOX, triangleGeometry } from '../../lib/pitch-diagram';
 import { buildPitchQuery } from '../../lib/url-state/pitch';
+import ToolActions from './ToolActions.astro';
 
 const ev = evaluatePitch(D);
 const res = pitchResults(ev.ratio ?? 0.5);
@@ -21,30 +22,32 @@ const g = triangleGeometry(ev.ratio);
 const shareText = `${Astro.url.pathname}?${buildPitchQuery(D)}`;
 
 const tabs = [
-  { id: 'rr', label: 'Rise & Run', extra: '' },
-  { id: 'angle', label: 'Angle', extra: '' },
-  { id: 'pitch', label: 'Pitch', extra: ' (x/12)' },
+  { id: 'rr', label: 'Rise & run' },
+  { id: 'angle', label: 'Angle' },
+  { id: 'pitch', label: 'Pitch (x/12)' },
 ] as const;
 ---
 
 <section class="tool" data-pitch-tool aria-label="Roof pitch calculator">
-  <div class="tabs" role="tablist" aria-label="Input method">
-    {
-      tabs.map((t) => (
-        <button
-          type="button"
-          role="tab"
-          id={`pt-tab-${t.id}`}
-          aria-controls={`pt-panel-${t.id}`}
-          aria-selected={t.id === D.mode ? 'true' : 'false'}
-          tabindex={t.id === D.mode ? 0 : -1}
-          data-mode={t.id}
-        >
-          {t.label}
-          {t.extra && <span class="hide-sm">{t.extra}</span>}
-        </button>
-      ))
-    }
+  <div class="mode">
+    <p class="mode-label" id="pt-mode-l">What do you know?</p>
+    <div class="mode-switch" role="tablist" aria-labelledby="pt-mode-l">
+      {
+        tabs.map((t) => (
+          <button
+            type="button"
+            role="tab"
+            id={`pt-tab-${t.id}`}
+            aria-controls={`pt-panel-${t.id}`}
+            aria-selected={t.id === D.mode ? 'true' : 'false'}
+            tabindex={t.id === D.mode ? 0 : -1}
+            data-mode={t.id}
+          >
+            {t.label}
+          </button>
+        ))
+      }
+    </div>
   </div>
 
   <div class="tool-grid">
@@ -151,7 +154,7 @@ const tabs = [
       <div class="result"><dt>Angle</dt><dd data-out="angle">{f.angle}</dd></div>
       <div class="result"><dt>Slope</dt><dd data-out="slope">{f.slope}</dd></div>
       <div class="result">
-        <dt><span class="long">Rafter multiplier</span><span class="short" aria-hidden="true">Rafter ×</span></dt>
+        <dt>Rafter multiplier</dt>
         <dd data-out="multiplier">{f.multiplier}</dd>
       </div>
     </dl>
@@ -168,10 +171,7 @@ const tabs = [
     </div>
 
     <div class="actions">
-      <button type="button" class="btn btn-primary" data-act="copy">Copy results</button>
-      <button type="button" class="btn btn-secondary" data-act="share">Share link</button>
-      <button type="button" class="btn btn-secondary" data-act="print">Print</button>
-      <span class="share-url mono" data-share-url>{shareText}</span>
+      <ToolActions id="pitch-tool" />
     </div>
   </div>
 
@@ -189,6 +189,58 @@ const tabs = [
     background: var(--color-surface);
     border-top: var(--rule);
     box-shadow: var(--shadow-md);
+  }
+  .mode {
+    padding: var(--space-4) var(--space-4) 0;
+  }
+  .mode-label {
+    margin: 0 0 var(--space-2);
+    font-size: 13px;
+    font-weight: var(--fw-semibold);
+    color: var(--color-neutral-700);
+  }
+  .mode-switch {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--color-neutral-500);
+    background: var(--color-surface);
+  }
+  .mode-switch [role='tab'] {
+    position: relative;
+    min-height: 48px;
+    padding: 0 var(--space-2);
+    border: 0;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 14px;
+    font-weight: var(--fw-regular);
+    text-align: center;
+    cursor: pointer;
+  }
+  .mode-switch [role='tab'] + [role='tab'] {
+    border-left: 1px solid var(--color-neutral-500);
+  }
+  .mode-switch [role='tab']:hover:not([aria-selected='true']) {
+    background: var(--color-accent-100);
+    color: var(--color-accent-700);
+  }
+  .mode-switch [role='tab'][aria-selected='true'] {
+    background: var(--color-accent);
+    color: #fff;
+    font-weight: var(--fw-heavy);
+    cursor: default;
+  }
+  .mode-switch [role='tab']:focus-visible {
+    z-index: 1;
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .mode-switch [role='tab'] {
+      transition:
+        background-color 150ms ease,
+        color 150ms ease;
+    }
   }
   .tool-grid {
     display: grid;
@@ -275,20 +327,7 @@ const tabs = [
   }
   .actions {
     grid-area: actions;
-    display: grid;
-    grid-template-columns: 1.3fr 1fr 1fr;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-4);
-    border-top: var(--line);
-  }
-  .actions .btn {
-    padding: 0 var(--space-3);
-  }
-  .share-url {
-    display: none;
-  }
-  .hide-sm {
-    display: none;
+    min-width: 0;
   }
 
   @media (min-width: 900px) {
@@ -322,32 +361,8 @@ const tabs = [
     .dg-arc {
       stroke-width: 1.5;
     }
-    .actions {
-      display: flex;
-      align-items: center;
-      padding: var(--space-4) var(--space-6);
-    }
-    .actions .btn {
-      padding: 0 var(--space-4);
-    }
-    .actions [data-act='copy'] {
-      min-width: 150px;
-    }
-    .actions [data-act='share'] {
-      min-width: 130px;
-    }
-    .share-url {
-      display: block;
-      margin-left: auto;
-      font-size: 12px;
-      color: var(--color-neutral-700);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      min-width: 0;
-    }
-    .hide-sm {
-      display: inline;
+    .mode {
+      padding: 20px var(--space-6) 0;
     }
   }
 
@@ -359,7 +374,7 @@ const tabs = [
       box-shadow: none;
       border: 1px solid #000;
     }
-    .tabs,
+    .mode,
     .actions,
     .units-row,
     .note {

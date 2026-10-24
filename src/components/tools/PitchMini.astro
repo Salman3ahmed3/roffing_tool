@@ -30,7 +30,7 @@ const full = `/roof-pitch-calculator/?rise=${RISE}&run=${RUN}&u=in`;
         <h3 id={`${id}-h`} class="pm-title">Try it · Roof Pitch Calculator</h3>
       )
     }
-    <a class="pm-full" href={full} data-pm-full>Full calculator →</a>
+    <a class="pm-full" href={full} data-pm-full><span class="pm-full-text">Full calculator</span>&nbsp;<span class="arr" aria-hidden="true">→</span></a>
   </div>
   <div class="pm-body">
     <div class="pm-inputs">
@@ -168,6 +168,31 @@ const full = `/roof-pitch-calculator/?rise=${RISE}&run=${RUN}&u=in`;
     display: inline-flex;
     align-items: center;
     min-height: 44px;
+    color: var(--color-accent);
+  }
+  .pm-full .arr {
+    display: inline-block;
+  }
+  .pm-full:hover,
+  .pm-full:focus-visible {
+    color: var(--color-accent-700);
+  }
+  .pm-full:hover .pm-full-text,
+  .pm-full:focus-visible .pm-full-text {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pm-full {
+      transition: color 200ms ease;
+    }
+    .pm-full .arr {
+      transition: transform 200ms ease;
+    }
+    .pm-full:hover .arr,
+    .pm-full:focus-visible .arr {
+      transform: translateX(3px);
+    }
   }
   .pm-body {
     display: grid;

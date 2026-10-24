@@ -1,0 +1,73 @@
+# Build the static Astro site and upload dist/ to Hostinger over FTPS.
+# See DEPLOY.md for secrets, logs and rollback.
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - claude/dreamy-feynman-7bkuua
+      - main
+  workflow_dispatch:
+
+# Never run two deploys at once; a second push waits for the first to finish.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Runs vitest, astro check, astro build and the placeholder check.
+      # Any failure stops the job here, before anything is uploaded.
+      - name: Build and test
+        run: npm run build
+
+      - name: Upload dist/ to Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@110f9186c050f71550953127052e77650219c287 # v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # Explicit TLS, so the password is not sent in plain text.
+          # If Hostinger's FTPS handshake fails, first try adding `security: loose` (accepts the
+          # shared-hosting certificate even if its name differs from FTP_SERVER). Only if that
+          # still fails, change this line to `protocol: ftp` (unencrypted; the password is sent
+          # in plain text).
+          protocol: ftps
+          local-dir: ./dist/
+          # The FTP account's root is already public_html.
+          server-dir: ./
+          # Never touch SSL validation files or the action's own sync-state file.
+          exclude: |
+            **/.well-known/**
+            .ftp-deploy-sync-state.json
+            **/.ftp-deploy-sync-state.json
+
+      - name: Smoke test the live site
+        run: |
+          set -euo pipefail
+          for url in https://exteriormath.com/ https://exteriormath.com/roof-pitch-calculator/; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --retry 3 --retry-delay 5 --retry-all-errors --max-time 30 "$url" || echo "000")
+            echo "$url -> HTTP $code"
+            if [ "$code" != "200" ]; then
+              echo "::error::$url returned HTTP $code (expected 200)"
+              exit 1
+            fi
+          done

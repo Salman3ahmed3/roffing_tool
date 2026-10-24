@@ -106,9 +106,53 @@ export function convertDeckUnits(s: ToolState, to: 'imp' | 'met'): ToolState {
   };
 }
 
+export function describeDeckInputs(s: ToolState): [string, string][] {
+  const met = s.u === 'met';
+  const L = met ? 'm' : 'ft';
+  const S = met ? 'mm' : 'in';
+  return [
+    ['Units', met ? 'Metric' : 'Feet / inches'],
+    ['Length (along house)', `${s.len} ${L}`],
+    ['Depth (from house)', `${s.dep} ${L}`],
+    ['Board width', `${s.bw} ${S}`],
+    ['Gap', `${s.gap} ${S}`],
+    ['Board length', `${s.blen} ${L}`],
+    ['Joist spacing', met ? `${s.js} mm on center` : `${s.js}″ on center`],
+    ['Waste', `${s.waste}%`],
+  ];
+}
+
 export const deckSpec: ToolSpec = {
   id: 'deck',
   title: 'Deck materials',
+  toolName: 'Deck Calculator',
+  slug: 'deck',
+  formula: [
+    'rows = ⌈(depth + gap) ÷ (board width + gap)⌉',
+    'boards = ⌈rows × length × (1 + waste %) ÷ board length⌉',
+    'joists = ⌈length ÷ joist spacing⌉ + 1',
+    'rim joists = 2 × length',
+    'screws = rows × joists × 2',
+  ],
+  resultLabels: { boards: 'Deck boards', joists: 'Joists', rim: 'Rim joists', screws: 'Screws' },
+  describeInputs: describeDeckInputs,
+  fileKey: (v) => (v.results ? `${v.results.boards.value}-boards` : 'results'),
+  listText: {
+    inputsHeading: 'YOUR DECK',
+    notIncluded: 'beams, posts, footings, ledger hardware, joist hangers and railings',
+    inputs: (s) => {
+      const met = s.u === 'met';
+      const L = met ? 'm' : 'ft';
+      const S = met ? 'mm' : 'in';
+      return [
+        ['Size', `${s.len} × ${s.dep} ${L}`],
+        ['Boards', `${s.bw} ${S} wide, ${s.blen} ${L} long`],
+        ['Joist spacing', met ? `${s.js} mm on center` : `${s.js}″ on center`],
+        ['Waste', `${s.waste}%`],
+      ];
+    },
+    subject: (s) => `Deck materials list · ${s.len} × ${s.dep} ${s.u === 'met' ? 'm' : 'ft'}`,
+  },
   defaults: DECK_DEFAULTS,
   evaluate: evaluateDeck,
   convertUnits: convertDeckUnits,

@@ -1,4 +1,4 @@
-# [BRAND] calculators
+# ExteriorMath calculators
 
 Static Astro site: roofing, fence and deck calculators. Built from `Calculator Site Design` (deep-blue accent).
 
@@ -16,7 +16,6 @@ Static Astro site: roofing, fence and deck calculators. Built from `Calculator S
 
 | Variable | Purpose |
 | --- | --- |
-| `PUBLIC_SITE_URL` | Production origin. Used for canonicals, Open Graph, sitemap and robots.txt. |
 | `PUBLIC_ADSENSE_CLIENT` | `ca-pub-…`. While empty, **no ad code and no ad space** is rendered. |
 | `PUBLIC_ADSENSE_SLOT_SIDEBAR` / `_BELOW_TOOL` / `_IN_CONTENT` | Ad-unit IDs per placement. A placement without an ID is not rendered. |
 | `PUBLIC_AD_PLACEHOLDERS` | `true` shows dashed boxes where ads go (layout review only; ignored once a client ID is set). |
@@ -45,14 +44,14 @@ Create `src/content/guides/<slug>.mdx` with the frontmatter used by `how-to-meas
 - `src/lib/url-state/` — shareable URL ⇄ input state.
 - `src/components/tools/` — calculator UI blocks; behaviour in `src/scripts/`.
 - `src/components/AdSlot.astro` — fixed-size ad slots (no layout shift).
-- `src/config/site.ts` — brand, author/reviewer placeholders, feature flags (`showCostCard`, `showQuotesCta` are off).
+- `src/config/site.ts` — brand, author, owner, contact email, legal dates, feature flags (`showCostCard`, `showQuotesCta` are off).
 - `src/styles/tokens.css` — design tokens as CSS custom properties.
 
-## Placeholders to replace before launch
+## No placeholders, no unverified claims
 
-`[BRAND]`, `[Author name]`, `[Reviewer name]`, `[Review date]`, `[contact@brand.com]` — all in `src/config/site.ts`.
+`npm run build` ends with `scripts/check-placeholders.mjs`, which fails the build if any built page or its JSON-LD contains a bracket placeholder such as `[Something]`.
 
-Legal pages contain bracketed placeholders (`[Effective date]`, `[Company legal name]`, `[Jurisdiction]`, hosting and consent details) and should be reviewed by a professional before launch.
+There is no expert reviewer yet, so the site makes no "verified" or "reviewed by" claims. Add reviewer details (and a `reviewedBy` in structured data) only after a real review has happened.
 
 ## Feature flags (`src/config/site.ts`)
 

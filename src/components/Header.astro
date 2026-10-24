@@ -6,10 +6,13 @@ interface Props {
 }
 const { currentPath } = Astro.props;
 const trades = ['Roofing', 'Outdoor'] as const;
+const isCurrent = (match: string) => (match === '/' ? currentPath === '/' : currentPath.startsWith(match));
+const home = { name: 'Home', href: '/', match: '/' };
 const links = [
   { name: 'Guides', href: GUIDE_LINKS[0].href, match: '/guides/' },
   { name: 'Methodology', href: '/methodology/', match: '/methodology/' },
   { name: 'About', href: '/about/', match: '/about/' },
+  { name: 'Contact', href: '/contact/', match: '/contact/' },
 ];
 const toolActive = TOOLS.some((t) => t.href === currentPath);
 ---
@@ -32,6 +35,9 @@ const toolActive = TOOLS.some((t) => t.href === currentPath);
 
     <nav id="site-nav" class="nav" aria-label="Main">
       <ul class="nav-list">
+        <li>
+          <a class="nav-link" href={home.href} aria-current={isCurrent(home.match) ? 'page' : undefined}>{home.name}</a>
+        </li>
         <li class="has-menu">
           <button
             class:list={['nav-link', 'tools-btn', { active: toolActive }]}
@@ -67,7 +73,7 @@ const toolActive = TOOLS.some((t) => t.href === currentPath);
         {
           links.map((l) => (
             <li>
-              <a class="nav-link" href={l.href} aria-current={currentPath.startsWith(l.match) ? 'page' : undefined}>
+              <a class="nav-link" href={l.href} aria-current={isCurrent(l.match) ? 'page' : undefined}>
                 {l.name}
               </a>
             </li>
@@ -98,9 +104,52 @@ const toolActive = TOOLS.some((t) => t.href === currentPath);
   };
 
   menuBtn?.addEventListener('click', () => setMenu(menuBtn.getAttribute('aria-expanded') !== 'true'));
+
+  // Desktop only: open on mouse hover and keyboard focus. Mobile keeps the hamburger behaviour.
+  const desktop = window.matchMedia('(min-width: 768px)');
+  const hasMenu = toolsBtn?.closest<HTMLElement>('.has-menu');
+  let closeTimer = 0;
+  let openedByHover = false;
+  const cancelClose = () => window.clearTimeout(closeTimer);
+
+  hasMenu?.addEventListener('pointerenter', (e) => {
+    if (!desktop.matches || e.pointerType !== 'mouse') return;
+    cancelClose();
+    if (toolsBtn?.getAttribute('aria-expanded') !== 'true') {
+      openedByHover = true;
+      setTools(true);
+    }
+  });
+  hasMenu?.addEventListener('pointerleave', (e) => {
+    if (!desktop.matches || e.pointerType !== 'mouse') return;
+    // Short delay so crossing the gap between button and menu never closes it.
+    cancelClose();
+    closeTimer = window.setTimeout(() => {
+      if (!hasMenu.contains(document.activeElement) || !document.activeElement?.matches(':focus-visible')) setTools(false);
+    }, 150);
+  });
+  hasMenu?.addEventListener('focusin', (e) => {
+    // Keyboard focus only; a mouse click focuses the button too, and click handles that case.
+    if (!desktop.matches || !(e.target instanceof HTMLElement) || !e.target.matches(':focus-visible')) return;
+    cancelClose();
+    setTools(true);
+  });
+  hasMenu?.addEventListener('focusout', (e) => {
+    if (!desktop.matches) return;
+    if (e.relatedTarget instanceof Node && hasMenu.contains(e.relatedTarget)) return;
+    setTools(false);
+  });
+
   toolsBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
-    setTools(toolsBtn.getAttribute('aria-expanded') !== 'true');
+    const open = toolsBtn.getAttribute('aria-expanded') === 'true';
+    // A click right after hover-opening keeps the menu open instead of toggling it shut.
+    if (open && openedByHover && desktop.matches) {
+      openedByHover = false;
+      return;
+    }
+    openedByHover = false;
+    setTools(!open);
   });
   document.addEventListener('click', (e) => {
     if (!(e.target instanceof Node)) return;
@@ -269,7 +318,7 @@ const toolActive = TOOLS.some((t) => t.href === currentPath);
     }
     .nav-list {
       display: flex;
-      gap: 36px;
+      gap: 20px;
       align-items: center;
     }
     .has-menu {
@@ -286,6 +335,39 @@ const toolActive = TOOLS.some((t) => t.href === currentPath);
       border: var(--line);
       border-top: var(--rule);
       box-shadow: var(--shadow-md);
+    }
+    @media (min-width: 1100px) {
+      .nav-list {
+        gap: 32px;
+      }
+    }
+    /* Invisible bridge over the 8px gap (+2px top rule) so the pointer can travel into the menu. */
+    .tools-menu::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -10px;
+      height: 10px;
+    }
+  }
+
+  @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+    .tools-menu:not([hidden]) {
+      animation: tools-in 150ms ease-out;
+    }
+    .tools-btn svg {
+      transition: transform 150ms ease;
+    }
+  }
+  @keyframes tools-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 </style>

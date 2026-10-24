@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import TrustBadge from '../components/TrustBadge.astro';
 import PitchMini from '../components/tools/PitchMini.astro';
 import AdSlot from '../components/AdSlot.astro';
 import { SITE, TOOLS } from '../config/site';
@@ -33,7 +32,6 @@ const jsonLd = [
         Enter your measurements and get pitch, materials and quantities you can take to the supplier. Every formula is
         shown and sourced.
       </p>
-      <TrustBadge />
     </div>
     <div class="hero-tool">
       <PitchMini variant="home" id="home-pm" />
@@ -51,12 +49,14 @@ const jsonLd = [
           TOOLS.map((t) => (
             <li>
               <a class="tool-tile" href={t.href}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1f4bc0" stroke-width="1.75" stroke-linecap="square" aria-hidden="true">
-                  <path d={t.icon} />
-                </svg>
-                <b>{t.name}</b>
+                <span class="icon" aria-hidden="true">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square">
+                    <path d={t.icon} />
+                  </svg>
+                </span>
+                <b class="tile-title">{t.name}</b>
                 <span class="desc">{t.desc}</span>
-                <span class="go">Open calculator →</span>
+                <span class="go"><span class="go-text">Open calculator</span> <span class="arr" aria-hidden="true">→</span></span>
               </a>
             </li>
           ))
@@ -68,7 +68,7 @@ const jsonLd = [
     <section class="block" aria-labelledby="how-h">
       <div class="block-head">
         <h2 id="how-h">How our calculators work</h2>
-        <a href="/methodology/" class="head-link">Read the methodology →</a>
+        <a href="/methodology/" class="head-link"><span class="go-text">Read the methodology</span> <span class="arr" aria-hidden="true">→</span></a>
       </div>
       <div class="how">
         <div>
@@ -86,9 +86,13 @@ const jsonLd = [
           <p>Coverage and code limits come from published codes and product data, not guesses.</p>
         </div>
         <div>
-          <h3 class="how-k">03 · Tested and reviewed</h3>
-          <p class="big tnum">{SITE.lastReviewed}</p>
-          <p>Each formula has automated tests. Last reviewed by {SITE.reviewer}, {SITE.reviewerCredential}.</p>
+          <h3 class="how-k">03 · Tested</h3>
+          <ul>
+            <li>Reference values, e.g. 6/12 = 26.57°</li>
+            <li>Edge cases: flat roofs, zero run, exact multiples</li>
+            <li>Rounding, unit conversion and input checks</li>
+          </ul>
+          <p>Each formula has automated tests that run on every build. If a test fails, the site does not build.</p>
         </div>
       </div>
     </section>
@@ -103,7 +107,7 @@ const jsonLd = [
             <li>
               <a class="guide-card" href={`/guides/${g.id}/`}>
                 <div class="guide-art blueprint" aria-hidden="true">
-                  <svg width="220" height="120" viewBox="0 0 220 120" fill="none" stroke="#1f4bc0" stroke-width="2">
+                  <svg width="220" height="120" viewBox="0 0 220 120" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20 105L200 15 M110 60h80 M190 60v-40" />
                   </svg>
                 </div>
@@ -133,9 +137,6 @@ const jsonLd = [
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
-  }
-  .hero-text > :global(.badge) {
-    align-self: flex-start;
   }
   .kicker {
     font-size: 12px;
@@ -182,6 +183,20 @@ const jsonLd = [
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
+    color: var(--color-accent);
+  }
+  /* Text links with a trailing arrow: accent → accent-700 + underline; arrow nudges right. */
+  .arr {
+    display: inline-block;
+  }
+  .head-link:hover,
+  .head-link:focus-visible {
+    color: var(--color-accent-700);
+  }
+  .head-link:hover .go-text,
+  .head-link:focus-visible .go-text {
+    text-decoration: underline;
+    text-underline-offset: 4px;
   }
   .tools,
   .guides {
@@ -195,21 +210,29 @@ const jsonLd = [
   .tool-tile {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 20px;
+    gap: var(--space-2);
+    padding: var(--space-6) 20px 20px;
     background: var(--color-surface);
+    border: var(--line);
     border-top: var(--rule);
     color: var(--color-text);
     text-decoration: none;
     height: 100%;
   }
-  .tool-tile:hover {
-    background: var(--color-neutral-100);
-    color: var(--color-text);
+  .tool-tile .icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-accent-100);
+    color: var(--color-accent);
+    margin-bottom: var(--space-2);
   }
-  .tool-tile b {
+  .tool-tile .tile-title {
     font-size: 18px;
     font-weight: 800;
+    line-height: 1.25;
   }
   .tool-tile .desc {
     font-size: 14px;
@@ -218,9 +241,34 @@ const jsonLd = [
     flex: 1;
   }
   .tool-tile .go {
+    margin-top: var(--space-3);
     font-size: 13px;
     font-weight: 600;
     color: var(--color-accent);
+  }
+  /* Card hover / keyboard focus */
+  .tool-tile:hover,
+  .tool-tile:focus-visible,
+  .guide-card:hover,
+  .guide-card:focus-visible {
+    background: var(--color-accent-100);
+    border-color: var(--color-accent-600);
+    box-shadow: var(--shadow-md);
+    color: var(--color-text);
+  }
+  .tool-tile:hover .icon,
+  .tool-tile:focus-visible .icon {
+    background: var(--color-accent);
+    color: #fff;
+  }
+  .tool-tile:hover .go,
+  .tool-tile:focus-visible .go {
+    color: var(--color-accent-700);
+  }
+  .tool-tile:hover .go-text,
+  .tool-tile:focus-visible .go-text {
+    text-decoration: underline;
+    text-underline-offset: 4px;
   }
   :global(.home-ad) {
     margin-top: var(--space-12);
@@ -255,24 +303,18 @@ const jsonLd = [
     border: 0;
     white-space: normal;
   }
-  .big {
-    font-size: 26px;
-    font-weight: 800;
-    color: var(--color-text);
-  }
   .guide-card {
     display: flex;
     flex-direction: column;
     background: var(--color-surface);
+    border: var(--line);
+    border-top: var(--rule);
     color: var(--color-text);
     text-decoration: none;
     height: 100%;
   }
-  .guide-card:hover {
-    background: var(--color-neutral-100);
-    color: var(--color-text);
-  }
   .guide-art {
+    color: var(--color-accent);
     height: 170px;
     display: flex;
     align-items: center;
@@ -299,6 +341,44 @@ const jsonLd = [
   }
   .small {
     font-size: 13px;
+  }
+
+  /* Motion: lift, arrow nudge and transitions only for people who have not asked for reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .tool-tile,
+    .guide-card {
+      transition:
+        transform 200ms ease,
+        box-shadow 200ms ease,
+        background-color 200ms ease,
+        border-color 200ms ease;
+    }
+    .tool-tile .icon {
+      transition:
+        background-color 200ms ease,
+        color 200ms ease;
+    }
+    .go,
+    .head-link {
+      transition: color 200ms ease;
+    }
+    .arr {
+      transition: transform 200ms ease;
+    }
+    .tool-tile:hover,
+    .tool-tile:focus-visible,
+    .guide-card:hover,
+    .guide-card:focus-visible {
+      transform: translateY(-4px);
+    }
+    .tool-tile:hover .arr,
+    .tool-tile:focus-visible .arr {
+      transform: translateX(4px);
+    }
+    .head-link:hover .arr,
+    .head-link:focus-visible .arr {
+      transform: translateX(3px);
+    }
   }
 
   @media (min-width: 640px) {

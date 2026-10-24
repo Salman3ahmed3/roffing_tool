@@ -1,6 +1,7 @@
 ---
 /**
- * Shell for the materials-style calculators. Fields go in the default slot.
+ * Shell for the materials-style calculators. The default slot takes <ToolStep> groups of fields
+ * (Step 1 carries the Units toggle).
  * Server-renders the default result so numbers are visible before JS runs;
  * /src/scripts/calc-tool.ts restores state from the URL and keeps everything live.
  */
@@ -11,7 +12,7 @@ import { SPECS, type SpecId } from '../../lib/tools/registry';
 interface Props {
   spec: SpecId;
   label: string;
-  results: { key: string; label: string; short?: string }[];
+  results: { key: string; label: string }[];
   listNote?: string;
 }
 const { spec, label, results, listNote } = Astro.props;
@@ -21,34 +22,24 @@ const view = s.evaluate(s.defaults);
 
 <div class="calc" data-calc={spec} data-unit={s.defaults.u}>
   <section class="tool calc-tool" aria-label={label}>
-    <div class="calc-head">
-      <div class="units-row">
-        <span class="units-label" id={`${spec}-units`}>Units</span>
-        <div class="segr compact" role="radiogroup" aria-labelledby={`${spec}-units`} style="--n:2">
-          <label class="segr-opt"><input type="radio" name="u" value="imp" checked={s.defaults.u === 'imp'} /><span>ft / in</span></label>
-          <label class="segr-opt"><input type="radio" name="u" value="met" checked={s.defaults.u === 'met'} /><span>Metric</span></label>
-        </div>
-      </div>
-    </div>
     <div class="calc-fields">
       <slot />
     </div>
-    <p class="note calc-status" data-status data-tone={view.status.tone}>{view.status.text}</p>
+    <div class="note calc-status" data-status-box data-tone={view.status.tone}>
+      <svg class="note-ico ico-info" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5" stroke-linecap="square"></path>
+      </svg>
+      <svg class="note-ico ico-warn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M12 3 2 21h20z M12 10v5 M12 17.5v.5" stroke-linecap="square"></path>
+      </svg>
+      <p data-status>{view.status.text}</p>
+    </div>
 
     <dl class="results four" data-results>
       {
         results.map((r, i) => (
           <div class:list={['result', { primary: i === 0 }]}>
-            <dt>
-              {r.short ? (
-                <>
-                  <span class="long">{r.label}</span>
-                  <span class="short" aria-hidden="true">{r.short}</span>
-                </>
-              ) : (
-                r.label
-              )}
-            </dt>
+            <dt>{r.label}</dt>
             <dd data-out={r.key}>{view.results?.[r.key]?.value ?? '—'}</dd>
             <dd class="sub" data-sub={r.key}>{view.results?.[r.key]?.sub ?? ''}</dd>
           </div>
@@ -56,7 +47,7 @@ const view = s.evaluate(s.defaults);
       }
     </dl>
     <p class="calc-summary tnum" data-summary>{view.summary}</p>
-    <ToolActions />
+    <ToolActions id={`${spec}-tool`} />
     <p class="print-only print-url">Results link: <span data-print-url></span></p>
     <div class="sr-only" aria-live="polite" aria-atomic="true" data-live></div>
   </section>
@@ -75,42 +66,100 @@ const view = s.evaluate(s.defaults);
 </script>
 
 <style is:global>
-  .calc-head {
-    padding: var(--space-4) var(--space-4) 0;
+  /* ── Steps ──────────────────────────────────────────── */
+  .calc-fields {
+    padding: 0 var(--space-4);
+  }
+  .calc-step {
+    padding: var(--space-6) 0;
+  }
+  .calc-step + .calc-step {
+    border-top: var(--line);
+  }
+  .step-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .step-intro {
+    min-width: 0;
+  }
+  .step-label {
+    margin: 0;
+    font-size: 12px;
+    font-weight: var(--fw-heavy);
+    line-height: 16px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+  .step-hint {
+    margin: var(--space-1) 0 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--color-neutral-700);
   }
   .calc .units-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: var(--space-3);
   }
-  .calc .units-label {
-    font-size: 13px;
-    color: var(--color-neutral-700);
+  .segr.units {
+    width: 200px;
   }
-  .calc-fields {
+  /* Equal columns: every control lines up on both edges. One column on phones. */
+  .step-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px var(--space-3);
-    padding: 14px var(--space-4) var(--space-4);
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
   }
-  .calc-fields .cell.wide {
+  .step-grid > .wide {
     grid-column: 1 / -1;
   }
   .calc-fields [hidden] {
     display: none !important;
   }
+  /* Bold label + muted helper on one line, same height everywhere so controls align. */
+  .calc .field-label {
+    min-height: 20px;
+    line-height: 20px;
+  }
+  /* A <legend> sits outside the fieldset's flex flow, so give it the same 6px gap as a <label>. */
+  .calc fieldset.field > legend.field-label {
+    margin-bottom: 6px;
+  }
   .calc .field-label.row {
     display: flex;
     justify-content: space-between;
     gap: 6px;
-    align-items: baseline;
+    align-items: center;
+  }
+  .step-note {
+    margin: calc(var(--space-2) * -1) 0 0;
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--color-neutral-700);
+  }
+  .field-link {
+    font-size: 13px;
+    line-height: 18px;
+    color: var(--color-accent);
+    text-underline-offset: 3px;
+  }
+  .field-link:hover {
+    color: var(--color-accent-700);
   }
   .from-tag {
     font-size: 11px;
     font-weight: 600;
+    line-height: 16px;
     background: var(--color-accent-100);
     color: var(--color-accent-800);
-    padding: 2px 6px;
+    padding: 0 6px;
     white-space: nowrap;
   }
   .from-tag[hidden] {
@@ -120,14 +169,60 @@ const view = s.evaluate(s.defaults);
   .calc[data-unit='met'] .u-imp {
     display: none;
   }
+  @media (max-width: 639px) {
+    .step-head {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .calc .units-row {
+      justify-content: space-between;
+    }
+    .segr.units {
+      width: auto;
+      flex: 1;
+      max-width: 240px;
+    }
+  }
+  @media (min-width: 640px) {
+    .step-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4) var(--space-6);
+    }
+  }
+
+  /* ── Status note (directly above the results) ───────── */
   .calc-status {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
     margin: 0 var(--space-4) var(--space-4);
+    padding: 10px var(--space-3);
+    background: var(--color-accent-100);
+    color: var(--color-neutral-800);
+  }
+  .calc-status p {
+    margin: 0;
+  }
+  .note-ico {
+    flex: none;
+    margin-top: 2px;
+    color: var(--color-accent);
+  }
+  .calc-status .ico-warn,
+  .calc-status[data-tone='warn'] .ico-info {
+    display: none;
+  }
+  .calc-status[data-tone='warn'] .ico-warn {
+    display: block;
+    color: currentColor;
   }
   .calc-status[data-tone='warn'] {
     background: #fdf3e1;
     color: #5c3d00;
     border-left: 3px solid #8f5f06;
   }
+
+  /* ── Results ────────────────────────────────────────── */
   .calc .results .result dd.sub {
     font-size: 12px;
     font-weight: 400;
@@ -142,44 +237,26 @@ const view = s.evaluate(s.defaults);
     font-size: 13px;
     color: var(--color-neutral-700);
   }
-  .calc .tool-actions {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr 1fr;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-4);
-    border-top: var(--line);
-  }
-  .calc .tool-actions .btn {
-    padding: 0 var(--space-3);
-  }
-  .calc .share-url {
-    display: none;
-  }
 
-  /* Radio segmented control */
+  /* ── Segmented control (radios) — same look as the roof pitch mode switch ── */
   .segr {
     display: grid;
     grid-template-columns: repeat(var(--n), minmax(0, 1fr));
     border: 1px solid var(--color-neutral-500);
     background: var(--color-surface);
-    min-height: 48px;
-  }
-  .segr.compact {
-    display: inline-grid;
-    min-height: 40px;
   }
   .segr-opt {
     position: relative;
     display: flex;
     align-items: center;
-    padding: 0 12px;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0 var(--space-2);
     font-size: 14px;
+    text-align: center;
+    color: var(--color-text);
     cursor: pointer;
     white-space: nowrap;
-  }
-  .segr.compact .segr-opt {
-    font-size: 13px;
-    padding: 0 14px;
   }
   .segr-opt + .segr-opt {
     border-left: 1px solid var(--color-neutral-500);
@@ -192,15 +269,43 @@ const view = s.evaluate(s.defaults);
     pointer-events: none;
   }
   .segr-opt:has(input:checked) {
-    background: var(--color-text);
-    color: #fff;
+    background: var(--color-accent);
+    color: var(--color-surface);
+    font-weight: var(--fw-heavy);
   }
   .segr-opt:not(:has(input:checked)):hover {
-    background: var(--color-neutral-100);
+    background: var(--color-accent-100);
+    color: var(--color-accent-700);
   }
   .segr-opt:has(input:focus-visible) {
-    outline: 2px solid var(--color-accent);
-    outline-offset: -4px;
+    z-index: 1;
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+  /* "Recommended" tag sits under its chip; the space is reserved so nothing shifts. */
+  .segr.has-rec {
+    margin-bottom: 22px;
+  }
+  .seg-rec {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0 6px;
+    background: var(--color-accent-100);
+    color: var(--color-accent-700);
+    font-size: 11px;
+    font-weight: var(--fw-semibold);
+    line-height: 16px;
+    white-space: nowrap;
+  }
+  .seg-rec[hidden] {
+    display: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .segr-opt {
+      transition: background-color 150ms ease, color 150ms ease;
+    }
   }
   .input-group.select select {
     flex: 1;
@@ -240,7 +345,31 @@ const view = s.evaluate(s.defaults);
   }
   .mlist-btns {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: var(--space-2);
+  }
+  /* Small text button, shown only while something is ticked. */
+  .mlist-clear {
+    min-height: 44px;
+    padding: 0 var(--space-2);
+    border: 0;
+    background: none;
+    font-size: 14px;
+    font-weight: var(--fw-semibold);
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .mlist-clear:hover {
+    color: var(--color-accent-700);
+  }
+  .mlist-clear[hidden] {
+    display: none;
+  }
+  .list-url {
+    display: none;
   }
   .mlist-items {
     list-style: none;
@@ -275,9 +404,10 @@ const view = s.evaluate(s.defaults);
     font-size: 13px;
     color: var(--color-neutral-700);
   }
-  .mlist-items li:has(input:checked) .name {
+  /* Ticked: name, quantity and unit are crossed out and greyed together. */
+  .mlist-items li:has(input:checked) :is(.name, .qty, .unit) {
     text-decoration: line-through;
-    color: var(--color-neutral-700);
+    color: var(--color-neutral-600);
   }
   .mlist-items:empty::before {
     content: 'Enter valid measurements to build the list.';
@@ -295,46 +425,14 @@ const view = s.evaluate(s.defaults);
   }
 
   @media (min-width: 900px) {
-    .calc-head {
-      padding: var(--space-6) var(--space-6) 0;
-    }
     .calc-fields {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 20px;
-      padding: 20px var(--space-6) var(--space-6);
-    }
-    .calc-fields .cell.wide {
-      grid-column: span 2;
+      padding: 0 var(--space-6);
     }
     .calc-status {
       margin: 0 var(--space-6) var(--space-6);
     }
     .calc-summary {
       padding: var(--space-3) var(--space-6);
-    }
-    .calc .tool-actions {
-      display: flex;
-      align-items: center;
-      padding: var(--space-4) var(--space-6);
-    }
-    .calc .tool-actions .btn {
-      padding: 0 var(--space-4);
-    }
-    .calc .tool-actions [data-act='copy'] {
-      min-width: 150px;
-    }
-    .calc .tool-actions [data-act='share'] {
-      min-width: 130px;
-    }
-    .calc .share-url {
-      display: block;
-      margin-left: auto;
-      min-width: 0;
-      font-size: 12px;
-      color: var(--color-neutral-700);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
     .mlist-head {
       padding: var(--space-4) 20px;
@@ -345,7 +443,6 @@ const view = s.evaluate(s.defaults);
   }
 
   @media print {
-    .calc-head,
     .calc-fields,
     .calc .tool-actions,
     .mlist-btns,
@@ -388,9 +485,42 @@ const view = s.evaluate(s.defaults);
       width: 16px;
       height: 16px;
     }
-    .mlist-items li:has(input:checked) .name {
+    .mlist-items li:has(input:checked) :is(.name, .qty, .unit) {
       text-decoration: none;
       color: #000;
+    }
+
+    /* "Print list": the list view only (html.printing-list is set around window.print()). */
+    html.printing-list :is(.skip-link, .nav, .menu-toggle, .site-footer, .with-sidebar > aside) {
+      display: none !important;
+    }
+    html.printing-list .intro > :not(.row),
+    html.printing-list .intro .row > :not(.text),
+    html.printing-list .intro .lede {
+      display: none !important;
+    }
+    html.printing-list .intro {
+      padding: 0 0 8px;
+    }
+    html.printing-list .tool-page > :not(.calc),
+    html.printing-list .calc > :not(.calc-tool, .mlist),
+    html.printing-list :is(.calc-fields, .calc-status, .calc-summary, .calc .tool-actions, .calc-tool .print-url, .mlist-btns) {
+      display: none !important;
+    }
+    html.printing-list .mlist {
+      margin-top: 12px;
+    }
+    html.printing-list .mlist-items label {
+      min-height: 0;
+      padding-block: 8px;
+    }
+    html.printing-list .list-url {
+      display: block;
+      margin: 0;
+      padding: 8px 16px;
+      font-size: 12px;
+      border-top: 1px solid #000;
+      overflow-wrap: anywhere;
     }
   }
 </style>

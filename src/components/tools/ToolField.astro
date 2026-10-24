@@ -14,8 +14,10 @@ interface Props {
   initiallyHidden?: boolean;
   placeholder?: string;
   tag?: string;
+  /** Small link under the field, e.g. to a helper tool. */
+  link?: { href: string; text: string };
 }
-const { name, label, hint, suffix, suffixMet, value, wide = false, showWhen, placeholder, tag, initiallyHidden = false } = Astro.props;
+const { name, label, hint, suffix, suffixMet, value, wide = false, showWhen, placeholder, tag, link, initiallyHidden = false } = Astro.props;
 const id = `f-${name}`;
 ---
 
@@ -37,4 +39,5 @@ const id = `f-${name}`;
     }
   </div>
   <span class="field-error" id={`${id}-err`} data-error></span>
+  {link && <a class="field-link" href={link.href}>{link.text}</a>}
 </div>

@@ -129,9 +129,58 @@ export function convertFenceUnits(s: ToolState, to: 'imp' | 'met'): ToolState {
   };
 }
 
+export function describeFenceInputs(s: ToolState): [string, string][] {
+  const met = s.u === 'met';
+  const L = met ? 'm' : 'ft';
+  const S = met ? 'cm' : 'in';
+  return [
+    ['Units', met ? 'Metric' : 'Feet / inches'],
+    ['Fence length', `${s.len} ${L}`],
+    ['Post spacing (on center)', `${s.space} ${L}`],
+    ['Corners', s.corners],
+    ['Rails per section', s.rails],
+    ['Picket width', `${s.pw} ${S}`],
+    ['Gap between pickets', `${s.gap} ${S}`],
+    ['Post size', s.post === '6x6' ? '6×6' : '4×4'],
+    ['Hole diameter', `${s.dia} ${S}`],
+    ['Hole depth', `${s.depth} ${S}`],
+    ['Gravel base', `${s.gravel} ${S}`],
+    ['Concrete bag', `${s.bag} ${met ? 'kg' : 'lb'}`],
+  ];
+}
+
+const fenceUnits = (s: ToolState) => (s.u === 'met' ? 'm' : 'ft');
+
 export const fenceSpec: ToolSpec = {
   id: 'fence',
   title: 'Fence materials',
+  toolName: 'Fence Calculator',
+  slug: 'fence',
+  formula: [
+    'sections = ⌈length ÷ post spacing⌉',
+    'posts = sections + 1 + corners',
+    'rails = sections × rails per section',
+    'pickets = ⌈length ÷ (picket width + gap)⌉',
+    'concrete per post = (π × (Ø ÷ 2)² − post²) × (depth − gravel)',
+    'bags = ⌈posts × concrete per post ÷ bag yield⌉ (0.0075 ft³ per lb)',
+  ],
+  resultLabels: { posts: 'Posts', rails: 'Rails', pickets: 'Pickets', bags: 'Concrete bags' },
+  describeInputs: describeFenceInputs,
+  fileKey: (v) => (v.results ? `${v.results.posts.value}-posts` : 'results'),
+  listText: {
+    inputsHeading: 'YOUR FENCE',
+    notIncluded: 'gates, post caps, brackets and fasteners',
+    inputs: (s) => {
+      const rows: [string, string][] = [
+        ['Length', `${s.len} ${fenceUnits(s)}`],
+        ['Post spacing', `${s.space} ${fenceUnits(s)}`],
+        ['Rails', `${s.rails} per section`],
+      ];
+      if (s.corners && s.corners !== '0') rows.push(['Corners', s.corners]);
+      return rows;
+    },
+    subject: (s) => `Fence materials list · ${s.len} ${fenceUnits(s)}`,
+  },
   defaults: FENCE_DEFAULTS,
   evaluate: evaluateFence,
   convertUnits: convertFenceUnits,

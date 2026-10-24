@@ -26,7 +26,10 @@ export const ROOFING_DEFAULTS: ToolState = {
   ul: 'synthetic10',
 };
 
-const WASTE_OPTIONS = ['5', '10', '15', '20'];
+export const WASTE_OPTIONS = ['5', '10', '15', '20'];
+
+/** Waste option tagged "Recommended" for each roof shape (a visual hint; it never changes the selection). */
+export const RECOMMENDED_WASTE: Record<RoofShape, string> = { gable: '10', hip: '15' };
 
 export function evaluateRoofing(s: ToolState): ToolView {
   const errors: Record<string, string> = {};
@@ -143,9 +146,67 @@ export function convertRoofingUnits(s: ToolState, to: 'imp' | 'met'): ToolState 
   };
 }
 
+export function describeRoofingInputs(s: ToolState): [string, string][] {
+  const met = s.u === 'met';
+  const L = met ? 'm' : 'ft';
+  const A = met ? 'm²' : 'sq ft';
+  const ul = UNDERLAYMENT_OPTIONS.find((o) => o.id === s.ul) ?? UNDERLAYMENT_OPTIONS[0];
+  const rows: [string, string][] = [
+    ['Units', met ? 'Metric' : 'Feet / inches'],
+    ['Measure by', s.by === 'area' ? 'Roof area' : 'Footprint'],
+  ];
+  if (s.by === 'area') {
+    rows.push(['Roof area', `${s.area} ${A}`], ['Eaves + rakes', s.edge ? `${s.edge} ${L}` : 'Not entered']);
+  } else {
+    rows.push(['Length (along the ridge)', `${s.l} ${L}`], ['Width (gable end)', `${s.w} ${L}`]);
+  }
+  rows.push(
+    ['Pitch', `${s.pitch}/12`],
+    ['Roof shape', s.shape === 'hip' ? 'Hip' : 'Gable'],
+    ['Waste', `${s.waste}%`],
+    ['Underlayment', ul.label],
+  );
+  return rows;
+}
+
 export const roofingSpec: ToolSpec = {
   id: 'roofing',
   title: 'Roofing materials',
+  toolName: 'Roofing Materials Calculator',
+  slug: 'roofing',
+  formula: [
+    'roof area = length × width × √(1 + (pitch ÷ 12)²)',
+    'order area = roof area × (1 + waste %)',
+    'squares = order area ÷ 100',
+    'bundles = ⌈squares × 3⌉',
+    'underlayment rolls = ⌈order area × layers ÷ roll coverage⌉',
+    'drip edge pieces = ⌈(eaves + rakes) ÷ 9.83 ft⌉',
+  ],
+  resultLabels: { squares: 'Roof squares', bundles: 'Bundles', underlayment: 'Underlayment', drip: 'Drip edge' },
+  describeInputs: describeRoofingInputs,
+  fileKey: (v) => (v.results ? `${v.results.squares.value}-squares` : 'results'),
+  listText: {
+    inputsHeading: 'YOUR ROOF',
+    notIncluded: 'starter strip, ridge cap, flashing and fasteners',
+    inputs: (s) => {
+      const met = s.u === 'met';
+      const rows: [string, string][] =
+        s.by === 'area'
+          ? [['Roof area', `${s.area} ${met ? 'm²' : 'sq ft'}`]]
+          : [['Footprint', `${s.l} × ${s.w} ${met ? 'm' : 'ft'}`]];
+      if (s.by === 'area' && s.edge) rows.push(['Eaves + rakes', `${s.edge} ${met ? 'm' : 'ft'}`]);
+      const ul = UNDERLAYMENT_OPTIONS.find((o) => o.id === s.ul) ?? UNDERLAYMENT_OPTIONS[0];
+      rows.push(
+        ['Pitch', `${s.pitch}/12`],
+        ['Roof shape', s.shape === 'hip' ? 'Hip' : 'Gable'],
+        ['Waste', `${s.waste}%`],
+        ['Underlayment', ul.label],
+      );
+      return rows;
+    },
+    subject: (s) =>
+      `Roofing materials list · ${s.by === 'area' ? `${s.area} ${s.u === 'met' ? 'm²' : 'sq ft'}` : `${s.l} × ${s.w} ${s.u === 'met' ? 'm' : 'ft'}`}`,
+  },
   defaults: ROOFING_DEFAULTS,
   evaluate: evaluateRoofing,
   convertUnits: convertRoofingUnits,

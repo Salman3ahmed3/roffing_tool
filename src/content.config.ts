@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { SITE } from './config/site';
 
 const guides = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/guides' }),
@@ -11,10 +12,11 @@ const guides = defineCollection({
     description: z.string().max(170),
     lede: z.string(),
     category: z.string(),
-    author: z.string().default('[Author name]'),
-    authorBio: z.string().default('[Short bio: trade background, years of experience.]'),
-    reviewer: z.string().default('[Reviewer name]'),
-    reviewerBio: z.string().default('[License type and number, state.]'),
+    author: z.string().default(SITE.author),
+    authorBio: z.string().optional(),
+    /** Only fill these in once a real expert review has happened; nothing shows them yet. */
+    reviewer: z.string().optional(),
+    reviewerBio: z.string().optional(),
     published: z.coerce.date(),
     updated: z.coerce.date(),
     sources: z.array(z.string()).default([]),

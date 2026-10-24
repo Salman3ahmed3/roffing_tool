@@ -1,15 +1,24 @@
 /**
- * Site-wide settings. Bracketed values are placeholders to replace before launch.
+ * Site-wide settings. No placeholders: a test fails the build if "[Something]" reaches a page.
+ *
+ * There is no expert reviewer yet. Don't add reviewer names, credentials, "verified" or
+ * "last reviewed" claims (on pages or in JSON-LD) until a real review has happened.
  */
 export const SITE = {
-  brand: '[BRAND]',
+  brand: 'ExteriorMath',
+  /** Shown in the legal pages; canonical URLs come from astro.config.mjs. */
+  siteUrl: 'https://exteriormath.com',
   tagline: 'Free roofing, fence and deck calculators. Calculations run in your browser; nothing you enter is stored.',
-  author: '[Author name]',
-  reviewer: '[Reviewer name]',
-  reviewerCredential: 'licensed roofing contractor',
-  /** Shown in the "Formula verified" badge. ISO date; set when a real review happens. */
-  lastReviewed: '[Review date]',
-  contactEmail: '[contact@brand.com]',
+  /** Writes and maintains the calculators and content. */
+  author: 'Salman Ahmed',
+  /** Owns and operates the site (named in the terms and privacy policy). */
+  owner: 'Sawera Nadeem',
+  contactEmail: 'exteriormath@gmail.com',
+  /** Governing law for the terms of use. */
+  jurisdiction: 'Pakistan',
+  /** Effective date of the privacy policy and terms (ISO). */
+  legalEffective: '2026-10-26',
+  hosting: 'Hostinger',
   locale: 'en_US',
   ogImage: '/og-default.png',
 } as const;
@@ -62,6 +71,7 @@ export const TOOLS: NavTool[] = [
 ];
 
 export const COMPANY_LINKS = [
+  { name: 'Home', href: '/' },
   { name: 'About', href: '/about/' },
   { name: 'Contact', href: '/contact/' },
   { name: 'Privacy', href: '/privacy/' },

@@ -28,10 +28,37 @@ export interface ToolView {
   listMeta: string;
 }
 
+export type ReportRow = [label: string, value: string];
+
+/** Wording for the plain-text list (email / copy). */
+export interface ListTextSpec {
+  /** e.g. "YOUR FENCE" */
+  inputsHeading: string;
+  /** e.g. "gates, post caps, brackets and fasteners" */
+  notIncluded: string;
+  /** Short input lines, e.g. ["Length", "100 ft"]. */
+  inputs(s: ToolState): ReportRow[];
+  /** Email subject, e.g. "Fence materials list · 100 ft". */
+  subject(s: ToolState): string;
+}
+
 export interface ToolSpec {
   id: string;
   title: string;
+  /** Page / PDF name, e.g. "Roofing Materials Calculator". */
+  toolName: string;
+  /** Used in download filenames: exteriormath-<slug>-<key>.pdf */
+  slug: string;
   defaults: ToolState;
+  /** Formula lines printed in the PDF report. */
+  formula: string[];
+  /** Labels for the result keys, as shown on the page. */
+  resultLabels: Record<string, string>;
+  /** Human-readable inputs for the PDF report. */
+  describeInputs(s: ToolState): ReportRow[];
+  /** Short key for the filename from the current results, e.g. "14.8-squares". */
+  fileKey(v: ToolView): string;
+  listText: ListTextSpec;
   /** Keys whose fields are shown only when another key has a value: { area: ['by', 'area'] }. */
   evaluate(s: ToolState): ToolView;
   /** Convert length fields when the unit system changes. */
